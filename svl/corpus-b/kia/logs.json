@@ -1,0 +1,175 @@
+[
+  {
+    "id": "HP-KIA-01",
+    "kind": "happy",
+    "scenario": "Standard deployment GEC Manifest issuance + signature verification, incl. -04 kernel_version_date/kernel_implementer_id",
+    "conformance_refs": [
+      "§5.2",
+      "CONF-KIA-24 (proposed)",
+      "CONF-KIA-25 (proposed)"
+    ],
+    "outcome": "PASS",
+    "detail": "manifest_signature verifies=true; kernel_version_date=2026-07-01; kernel_implementer_id=74c4ccc556c9264e…"
+  },
+  {
+    "id": "HP-KIA-02",
+    "kind": "happy",
+    "scenario": "Manifest freshness check within §5.4 staleness limit",
+    "conformance_refs": [
+      "§5.4"
+    ],
+    "outcome": "PASS",
+    "detail": "age well under 86400s limit"
+  },
+  {
+    "id": "EDGE-KIA-01",
+    "kind": "edge",
+    "scenario": "Stale manifest (>86400s) should be rejected for federation",
+    "conformance_refs": [
+      "§5.4",
+      "§6.4(c)"
+    ],
+    "outcome": "DENY",
+    "deny_code": "KIA_MANIFEST_STALE",
+    "detail": "GEC Manifest age 172800s exceeds staleness limit 86400s"
+  },
+  {
+    "id": "EDGE-KIA-02",
+    "kind": "edge",
+    "scenario": "Tampered manifest field must invalidate manifest_signature",
+    "conformance_refs": [
+      "§15.2"
+    ],
+    "outcome": "DENY",
+    "deny_code": "KIA_MANIFEST_SIGNATURE_INVALID",
+    "detail": "GEC Manifest signature does not verify"
+  },
+  {
+    "id": "HP-KIA-03",
+    "kind": "happy",
+    "scenario": "FROST 3-of-5 quorum reached, signature verifies",
+    "conformance_refs": [
+      "§4.1",
+      "CONF-KIA-16",
+      "CONF-KIA-17"
+    ],
+    "outcome": "PASS",
+    "detail": "quorum met with node-a/b/c, verify=true"
+  },
+  {
+    "id": "EDGE-KIA-03",
+    "kind": "edge",
+    "scenario": "Below-quorum (2-of-5, need 3) signing attempt refused, no single-signer fallback",
+    "conformance_refs": [
+      "CONF-KIA-18",
+      "CONF-KIA-19"
+    ],
+    "outcome": "DENY",
+    "deny_code": "KIA_QUORUM_FAILURE",
+    "detail": "FROST quorum failure: 2/3 required participants responded — caller MUST emit KERNEL_AUDIT_ANOMALY (CONF-KIA-19)"
+  },
+  {
+    "id": "EDGE-KIA-04",
+    "kind": "edge",
+    "scenario": "FROST nonce reuse across two signing ops by same participants — secret share exposure risk",
+    "conformance_refs": [
+      "CONF-KIA-16",
+      "§15.8"
+    ],
+    "outcome": "DENY",
+    "deny_code": "KIA_NONCE_REUSE_DETECTED",
+    "detail": "Nonce reuse detected for participant node-a — secret share exposure risk"
+  },
+  {
+    "id": "HP-KIA-04",
+    "kind": "happy",
+    "scenario": "XPID derived deterministically from kernel fingerprint + party registry hash",
+    "conformance_refs": [
+      "§6.2",
+      "CONF-KIA-21"
+    ],
+    "outcome": "PASS",
+    "detail": "xpid=26759e82-fbb7-535d-9929-f2744ffd3c99"
+  },
+  {
+    "id": "HP-KIA-05",
+    "kind": "happy",
+    "scenario": "Receiving kernel recomputes and verifies XPID — matches",
+    "conformance_refs": [
+      "§6.3(c)",
+      "CONF-KIA-22"
+    ],
+    "outcome": "PASS",
+    "detail": "recomputed XPID matches presented XPID"
+  },
+  {
+    "id": "EDGE-KIA-05",
+    "kind": "edge",
+    "scenario": "CVE-2025-13609-class identity takeover: forged XPID claim with mismatched party registry entry — rejected",
+    "conformance_refs": [
+      "§15.10",
+      "CONF-KIA-21"
+    ],
+    "outcome": "DENY",
+    "deny_code": "KIA_XPID_VERIFICATION_FAILED",
+    "detail": "presented XPID 26759e82-fbb7-535d-9929-f2744ffd3c99 does not match recomputed c89a89a9-c0bc-515e-9cde-b50550ba666b"
+  },
+  {
+    "id": "EDGE-KIA-06",
+    "kind": "edge",
+    "scenario": "Client-supplied arbitrary XPID is never trusted as authoritative — recomputation always wins",
+    "conformance_refs": [
+      "CONF-KIA-21"
+    ],
+    "outcome": "DENY",
+    "deny_code": "KIA_CLIENT_SUPPLIED_XPID_REJECTED",
+    "detail": "client claimed 00000000-0000-5000-8000-000000000000, GEC-recomputed authoritative value is 26759e82-fbb7-535d-9929-f2744ffd3c99, matches=false"
+  },
+  {
+    "id": "HP-KIA-06",
+    "kind": "happy",
+    "scenario": "Event Log entry signed and verified (INV-9)",
+    "conformance_refs": [
+      "§7",
+      "INV-9"
+    ],
+    "outcome": "PASS",
+    "detail": "verify=true"
+  },
+  {
+    "id": "EDGE-KIA-07",
+    "kind": "edge",
+    "scenario": "Tampered Event Log entry payload must fail signature verification",
+    "conformance_refs": [
+      "§15.2",
+      "INV-9"
+    ],
+    "outcome": "DENY",
+    "deny_code": "KIA_MANIFEST_SIGNATURE_INVALID",
+    "detail": "verify=false (expected false)"
+  },
+  {
+    "id": "HP-KIA-07",
+    "kind": "happy",
+    "scenario": "jti not revoked — cross-instance event accepted",
+    "conformance_refs": [
+      "§8",
+      "CONF-KIA-23"
+    ],
+    "outcome": "PASS",
+    "detail": "no throw, jti clean"
+  },
+  {
+    "id": "EDGE-KIA-08",
+    "kind": "edge",
+    "scenario": "OQ-S-XPID-REV: revoked agent's XPID still verifies structurally, but independent jti check (CONF-KIA-23) catches the revocation",
+    "conformance_refs": [
+      "§6.4",
+      "§15.9",
+      "CONF-KIA-23"
+    ],
+    "outcome": "DENY",
+    "deny_code": "KIA_JTI_REVOKED",
+    "detail": "xpid_still_verifies=true (expected true — this is the documented gap), jti_check_caught_it=true: mandate jti mandate-jwt-jti-77x9 is revoked (scope=THIS_MANDATE_ONLY, at=2026-07-16T11:07:13.150Z)"
+  }
+]

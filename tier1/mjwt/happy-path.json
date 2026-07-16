@@ -1,0 +1,29 @@
+{
+  "draft": "draft-sato-soos-mjwt-02",
+  "corpus": "B",
+  "phase": "SVL Phase A — happy path",
+  "generated": "2026-07-08",
+  "pre_flight_question": "Is the 13-step GEC verification order normative (MUST follow this order) or advisory? RESOLVED from draft text, §8.1: 'MUST perform the following verification steps in order' and 'All thirteen steps MUST pass before the GEC proceeds to Cedar policy evaluation.' Normative. Sample MUST enforce strict order and short-circuit on first failure.",
+  "logs": [
+    { "id": "H-01", "scenario": "Root Mandate issuance", "description": "Human principal hp-001 issues a Root Mandate to ota-booking-agent-v2, mandate_ceiling 2, consent_scope present (BOOKING, AI_AGENT_OPERATION), sub_agent_scope RESTRICT." },
+    { "id": "H-02", "scenario": "Root Mandate full 13-step verification", "description": "GEC verifies the Root Mandate from H-01 end to end: aud match, EdDSA alg, valid signature, unexpired, not revoked, so_id/so_type_id match, human_principal_id match, ceiling sufficient, no parent so narrowing skipped, cedar_action in scope, state/phase permitted, no mission_ref present, consent_scope present with matching purpose code." },
+    { "id": "H-03", "scenario": "Child Mandate issuance — narrowed", "description": "GEC issues a Child Mandate to weather-monitor-agent-v1 from H-01's Root Mandate: cedar_actions narrowed to [atp:booking:suspend], permitted_states narrowed to [IN_JOURNEY], exp earlier than parent, sub_agent_scope narrowed RESTRICT -> NONE, purpose_codes narrowed to [BOOKING]." },
+    { "id": "H-04", "scenario": "Child Mandate full verification incl. Narrowing", "description": "GEC verifies H-03's Child Mandate: all 12 prior steps as H-02, plus Step 9 Narrowing Property check across all seven dimensions against the parent, all pass." },
+    { "id": "H-05", "scenario": "delegation_chain accumulation", "description": "Child Mandate's delegation_chain array carries two entries: the Root Mandate issuance (gec_signature: human_issued) and the Child Mandate issuance (gec_signature: Ed25519 signature), per the McGuinness Actor Profile chain format adopted without modification." },
+    { "id": "H-06", "scenario": "consent_scope INHERIT propagation", "description": "Root Mandate has sub_agent_scope INHERIT; Child Mandate is issued with sub_agent_scope INHERIT and an identical consent_scope object — permitted under narrowing rule 'Parent INHERIT => Child MAY be INHERIT, RESTRICT, or NONE'." },
+    { "id": "H-07", "scenario": "consent_scope RESTRICT to NONE propagation", "description": "Root Mandate has sub_agent_scope RESTRICT; Child Mandate is issued with sub_agent_scope NONE — permitted ('Parent RESTRICT => Child MUST be RESTRICT or NONE')." },
+    { "id": "H-08", "scenario": "Cedar context population from consent_scope", "description": "Kernel reads consent_scope at session start and populates context.data_subject_consent_present=true, context.consent_purpose_codes=[BOOKING, AI_AGENT_OPERATION], context.consent_jurisdiction=JP, context.consent_expiry=2026-08-15T08:00:00Z." },
+    { "id": "H-09", "scenario": "Step 1 audience binding pass", "description": "MJWT aud exactly matches the verifying GEC's KIA-attested instance identifier (kernel_keypair_fingerprint)." },
+    { "id": "H-10", "scenario": "Step 2 algorithm verification pass", "description": "JOSE header alg is EdDSA; not none or unsigned. Passes before signature verification is attempted." },
+    { "id": "H-11", "scenario": "Step 3 signature verification pass", "description": "Ed25519 signature verifies against the issuer's public key retrieved from the GEC's trusted key store." },
+    { "id": "H-12", "scenario": "Step 4 temporal validity pass — nbf and exp both satisfied", "description": "Current time is after nbf and before exp." },
+    { "id": "H-13", "scenario": "Step 5 revocation check pass", "description": "jti not present in the Revocation Registry, neither directly nor via cascade." },
+    { "id": "H-14", "scenario": "Step 6 SO Instance binding pass", "description": "so_id and so_type_id both match the targeted SO Instance." },
+    { "id": "H-15", "scenario": "Step 7 human principal linkage pass", "description": "human_principal_id in MJWT matches the SO Instance Identity Layer's human_principal_id." },
+    { "id": "H-16", "scenario": "Step 8 mandate ceiling pass", "description": "mandate_ceiling (2) is >= GEC conformance level (2)." },
+    { "id": "H-17", "scenario": "Step 10 Cedar action scope pass", "description": "Requested cedar_action atp:booking:suspend is present in the MJWT's cedar_actions array." },
+    { "id": "H-18", "scenario": "Step 11 state and phase restriction pass", "description": "SO Instance current_state IN_JOURNEY is in permitted_states; current_phase ACTIVE is in permitted_phases." },
+    { "id": "H-19", "scenario": "Step 12 mission_ref match pass", "description": "MJWT carries mission_ref mission-uuid-azusa-journey-2026-06-15; IDP submitted with the Transition Request carries the identical value." },
+    { "id": "H-20", "scenario": "Step 13 consent scope validation pass, all four sub-checks", "description": "consent_scope present (13a); expiry not passed (13b); purpose code BOOKING present for the requested action (13c); Child Mandate sub_agent_scope NONE is not less restrictive than parent's NONE (13d)." }
+  ]
+}

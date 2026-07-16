@@ -1,0 +1,204 @@
+[
+  {
+    "id": "HP-CAP-01",
+    "kind": "happy",
+    "scenario": "Tier 0-A MANIPULATION match — CONSTITUTIONAL_VIOLATION, unconditional, no PCR possible, caller error excludes action_pattern",
+    "conformance_refs": [
+      "§6.2 step 1",
+      "§7.2",
+      "§12.1"
+    ],
+    "outcome": "PASS",
+    "detail": "{\"result\":{\"output\":\"CONSTITUTIONAL_VIOLATION\",\"matchedRecordId\":\"t0a-manip\",\"matchedTier\":\"0A\"},\"callerError\":{\"violation_type\":\"AI_INITIATED\",\"prohibition_class\":\"MANIPULATION\"}}"
+  },
+  {
+    "id": "HP-CAP-02",
+    "kind": "happy",
+    "scenario": "Tier 0-B WMD_ASSISTANCE with active Mode-1 PCR — TIER_0B_PCR_ACTIVE, proceeds to Cedar, requires APPROVE_WITH_LEGAL_BASIS",
+    "conformance_refs": [
+      "§6.2 step 2",
+      "§7.3",
+      "§11.5"
+    ],
+    "outcome": "PASS",
+    "detail": "{\"output\":\"TIER_0B_PCR_ACTIVE\",\"matchedRecordId\":\"t0b-wmd\",\"matchedTier\":\"0B\",\"activePcrId\":\"pcr-1\"}"
+  },
+  {
+    "id": "EDGE-CAP-01",
+    "kind": "edge",
+    "scenario": "PCR naming an unclearable class rejected at load time",
+    "conformance_refs": [
+      "§11.2"
+    ],
+    "outcome": "DENY",
+    "deny_code": "PCR_REJECTED_UNCLEARABLE_CLASS",
+    "detail": "§11.2: prohibition_class \"MANIPULATION\" MUST NOT be cleared by any PCR under any circumstances"
+  },
+  {
+    "id": "HP-CAP-03",
+    "kind": "happy",
+    "scenario": "Tier 1 DATA_PROTECTION match citing APPI Article 17 — TIER_1_DENY",
+    "conformance_refs": [
+      "§6.2 step 4",
+      "§8"
+    ],
+    "outcome": "PASS",
+    "detail": "{\"output\":\"TIER_1_DENY\",\"matchedRecordId\":\"t1-appi17\",\"matchedTier\":\"1\"}"
+  },
+  {
+    "id": "HP-CAP-04",
+    "kind": "happy",
+    "scenario": "In-flight session hits a SUSPENDED Tier 1 record (mid-amendment-propagation) — CEE returns SUSPENDED, GOVERNANCE_SUSPENDED to agent, session stays open",
+    "conformance_refs": [
+      "§6.2 step 3",
+      "§6.3",
+      "§8.9.2"
+    ],
+    "outcome": "PASS",
+    "detail": "{\"result\":{\"output\":\"SUSPENDED\",\"matchedRecordId\":\"t1-suspended\",\"matchedTier\":\"1\",\"suspensionReason\":\"CATALOG_VERSION_CONFLICT\"},\"behavior\":{\"action\":\"Cedar evaluation returns SUSPENDED, agent receives GOVERNANCE_SUSPENDED, session remains open\",\"blocksNewSacr\":false,\"ceeReturnsSuspended\":true}}"
+  },
+  {
+    "id": "HP-CAP-05",
+    "kind": "happy",
+    "scenario": "MJWT consent_scope populates Cedar context correctly, kernel-derived",
+    "conformance_refs": [
+      "§5.4"
+    ],
+    "outcome": "PASS",
+    "detail": "{\"data_subject_consent\":true,\"consent_purpose_codes\":[\"BOOKING_CONFIRMATION\"],\"consent_data_categories\":[\"CONTACT_INFO\"],\"consent_jurisdiction\":\"JP\",\"consent_governing_law\":\"APPI\",\"consent_expiry\":\"2026-07-17T10:59:35.698Z\",\"consent_source\":\"MJWT\"}"
+  },
+  {
+    "id": "EDGE-CAP-02",
+    "kind": "edge",
+    "scenario": "Agent-supplied consent field override rejected",
+    "conformance_refs": [
+      "CONF-CAP-CONSENT-01"
+    ],
+    "outcome": "DENY",
+    "deny_code": "CONSENT_CONTEXT_OVERRIDE_REJECTED",
+    "detail": "CONF-CAP-CONSENT-01: agent/application supplied kernel-derived consent field(s): data_subject_consent — rejected"
+  },
+  {
+    "id": "EDGE-CAP-03",
+    "kind": "edge",
+    "scenario": "Expired consent_scope — data_subject_consent MUST be absent, not false",
+    "conformance_refs": [
+      "§5.4 fail-closed"
+    ],
+    "outcome": "DENY",
+    "deny_code": "CONSENT_CONTEXT_OVERRIDE_REJECTED",
+    "detail": "{}"
+  },
+  {
+    "id": "HP-CAP-06",
+    "kind": "happy",
+    "scenario": "All five soos.cap.* OTel span attributes emitted on a Tier 1 evaluation",
+    "conformance_refs": [
+      "§13.5",
+      "CONF-CAP-OTEL-01"
+    ],
+    "outcome": "PASS",
+    "detail": "{\"soos.cap.cedar_policy_id\":\"data-protection-jp\",\"soos.cap.cap_rrs_control_id\":\"OSCAL-CTRL-0091\",\"soos.cap.authority_source_uri\":\"https://laws.e-gov.go.jp/lri/v1/appi/art17\",\"soos.cap.tier\":\"1\",\"soos.cap.conflict_detected\":false}"
+  },
+  {
+    "id": "EDGE-CAP-04",
+    "kind": "edge",
+    "scenario": "Partial OTel attribute emission correctly rejected",
+    "conformance_refs": [
+      "CONF-CAP-OTEL-01"
+    ],
+    "outcome": "DENY",
+    "deny_code": "TRANSPARENCY_VIOLATION",
+    "detail": "CONF-CAP-OTEL-01: partial OTel attribute emission — missing: soos.cap.cap_rrs_control_id, soos.cap.authority_source_uri, soos.cap.conflict_detected"
+  },
+  {
+    "id": "EDGE-CAP-05",
+    "kind": "edge",
+    "scenario": "Tier 2 PERMIT + Tier 1 FORBID on the same action — forbid wins (CONF-CAP-CONFLICT-01)",
+    "conformance_refs": [
+      "§8.7"
+    ],
+    "outcome": "DENY",
+    "deny_code": "CATALOG_CONFLICT_REJECTED",
+    "detail": "{\"decision\":\"FORBID\",\"forbiddingPolicyId\":\"tier1-forbid\"}"
+  },
+  {
+    "id": "EDGE-CAP-06",
+    "kind": "edge",
+    "scenario": "Tier 2-over-Tier-1 override rejected at catalog load time (ALE-NEW-02 path)",
+    "conformance_refs": [
+      "CONF-CAP-CONFLICT-02",
+      "§8.8"
+    ],
+    "outcome": "DENY",
+    "deny_code": "CATALOG_CONFLICT_REJECTED",
+    "detail": "CONF-CAP-CONFLICT-02: Tier 2 policy explicitly permits an action Tier 1 forbids — compliance violation, entry MUST be rejected at load time"
+  },
+  {
+    "id": "EDGE-CAP-07",
+    "kind": "edge",
+    "scenario": "APPROVE_WITH_LEGAL_BASIS correctly rejected for Tier 0-A — no override possible under any circumstances",
+    "conformance_refs": [
+      "§12.3(1)"
+    ],
+    "outcome": "DENY",
+    "deny_code": "APPROVE_WITH_LEGAL_BASIS_INVALID",
+    "detail": "§12.3(1): APPROVE_WITH_LEGAL_BASIS MUST NOT be accepted for Tier 0-A violations under any circumstances"
+  },
+  {
+    "id": "EDGE-CAP-08",
+    "kind": "edge",
+    "scenario": "APPROVE correctly rejected for Class 5 — only APPROVE_WITH_LEGAL_BASIS/REDIRECT/TERMINATE/DEFER permitted",
+    "conformance_refs": [
+      "§13.3"
+    ],
+    "outcome": "DENY",
+    "deny_code": "APPROVE_WITH_LEGAL_BASIS_INVALID",
+    "detail": "§13.3: decision type \"APPROVE\" is prohibited for HEM_JURISDICTIONAL_CONFLICT (Class 5)"
+  },
+  {
+    "id": "EDGE-CAP-09",
+    "kind": "edge",
+    "scenario": "PTD with stale cedar_policy_hash, redacted Tier 0-A entry, missing Tier 0 record, and a refused regulatory query — all four CAP_TRANSPARENCY_VIOLATION triggers fire",
+    "conformance_refs": [
+      "§12a.6"
+    ],
+    "outcome": "DENY",
+    "deny_code": "TRANSPARENCY_VIOLATION",
+    "detail": "[\"(a) PTD cedar_policy_hash does not match GEC Manifest at query time\",\"(b) Tier 0 record t0a-csam is missing from the PTD\",\"(c) Tier 0 record t0a-manip present with disclosure_level \\\"REDACTED\\\"\",\"(d) a PTD query from a valid regulatory authority was refused\"]"
+  },
+  {
+    "id": "EDGE-CAP-10",
+    "kind": "edge",
+    "scenario": "Tier 0-A disclosure_level restriction enforced — FULL only",
+    "conformance_refs": [
+      "§12a.3"
+    ],
+    "outcome": "DENY",
+    "deny_code": "TRANSPARENCY_VIOLATION",
+    "detail": "§12a.3: TIER_0A record t0a-manip has disclosure_level \"COUNT_ONLY\", only FULL permitted"
+  },
+  {
+    "id": "EDGE-CAP-11",
+    "kind": "edge",
+    "scenario": "Silent suspension drop after 30 days blocked — operator notification + CRITICAL Audit Alert required first",
+    "conformance_refs": [
+      "CONF-CAP-SUSPEND-01",
+      "§8.9.4"
+    ],
+    "outcome": "DENY",
+    "deny_code": "CATALOG_CONFLICT_REJECTED",
+    "detail": "CONF-CAP-SUSPEND-01: GEC MUST NOT silently drop GOVERNANCE_SUSPENDED sessions after 30 days — notify operator + CRITICAL Audit Alert required before converting to DENY"
+  },
+  {
+    "id": "HP-CAP-07",
+    "kind": "happy",
+    "scenario": "Appendix A.2-style: two-jurisdiction SO, PRIMARY_JURISDICTION governs, JP permits — PERMIT with EU conflict recorded separately (CAP_TIER1_CONFLICT_DETECTED, not blocking)",
+    "conformance_refs": [
+      "§13.2",
+      "Appendix A.2"
+    ],
+    "outcome": "PASS",
+    "detail": "{\"output\":\"PERMIT\"}"
+  }
+]
