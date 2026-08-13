@@ -1,6 +1,6 @@
 # GAR — Governance Audit Record
 
-Sample TypeScript implementation of `draft-sato-soos-gar-03` (Tier 1,
+Sample TypeScript implementation of `draft-sato-soos-gar-04` (Tier 1,
 standalone, no external SOOS dependencies).
 
 GAR is the **AUDIT leg** of the Agent Accountability Stack
