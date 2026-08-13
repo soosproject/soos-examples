@@ -81,6 +81,17 @@
     "detail": "Nonce reuse detected for participant node-a — secret share exposure risk"
   },
   {
+    "id": "EDGE-KIA-09",
+    "kind": "edge",
+    "scenario": "Duplicate participant ID must not satisfy quorum (2 distinct signers, threshold 3)",
+    "conformance_refs": [
+      "CONF-KIA-18"
+    ],
+    "outcome": "DENY",
+    "deny_code": "KIA_QUORUM_FAILURE",
+    "detail": "FROST quorum failure: 2/3 required participants responded"
+  },
+  {
     "id": "HP-KIA-04",
     "kind": "happy",
     "scenario": "XPID derived deterministically from kernel fingerprint + party registry hash",
@@ -89,7 +100,7 @@
       "CONF-KIA-21"
     ],
     "outcome": "PASS",
-    "detail": "xpid=1b05c202-2e85-51fa-a7bc-261a013f57b8"
+    "detail": "xpid=2d284c6b-033a-589e-a237-2f33453032dc"
   },
   {
     "id": "HP-KIA-05",
@@ -112,7 +123,7 @@
     ],
     "outcome": "DENY",
     "deny_code": "KIA_XPID_VERIFICATION_FAILED",
-    "detail": "presented XPID 1b05c202-2e85-51fa-a7bc-261a013f57b8 does not match recomputed 91516e18-af6b-579c-a11c-15faa8fbb46e"
+    "detail": "presented XPID 2d284c6b-033a-589e-a237-2f33453032dc does not match recomputed 6c55ce15-b20f-523a-b866-1b00bd396f44"
   },
   {
     "id": "EDGE-KIA-06",
@@ -123,7 +134,7 @@
     ],
     "outcome": "DENY",
     "deny_code": "KIA_CLIENT_SUPPLIED_XPID_REJECTED",
-    "detail": "client claimed 00000000-0000-5000-8000-000000000000, GEC-recomputed authoritative value is 1b05c202-2e85-51fa-a7bc-261a013f57b8, matches=false"
+    "detail": "client claimed 00000000-0000-5000-8000-000000000000, GEC-recomputed authoritative value is 2d284c6b-033a-589e-a237-2f33453032dc, matches=false"
   },
   {
     "id": "HP-KIA-06",
@@ -145,8 +156,8 @@
       "INV-9"
     ],
     "outcome": "DENY",
-    "deny_code": "KIA_MANIFEST_SIGNATURE_INVALID",
-    "detail": "verify=false (expected false)"
+    "deny_code": "KIA_EVENT_LOG_SIGNATURE_INVALID",
+    "detail": "Event Log entry signature does not verify"
   },
   {
     "id": "HP-KIA-07",
@@ -170,6 +181,6 @@
     ],
     "outcome": "DENY",
     "deny_code": "KIA_JTI_REVOKED",
-    "detail": "xpid_still_verifies=true (expected true — this is the documented gap), jti_check_caught_it=true: mandate jti mandate-jwt-jti-77x9 is revoked (scope=THIS_MANDATE_ONLY, at=2026-07-08T09:47:08.159Z)"
+    "detail": "xpid_still_verifies=true (expected true — this is the documented gap), jti_check_caught_it=true: mandate jti mandate-jwt-jti-77x9 is revoked (scope=THIS_MANDATE_ONLY, at=2026-08-13T13:03:58.812Z)"
   }
 ]

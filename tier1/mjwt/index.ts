@@ -115,6 +115,19 @@ export interface VerificationResult {
   detail?: string;
 }
 
+/**
+ * Reference to a parent mandate for Step 9 live re-verification (MJWT-04
+ * §8.1 Step 9, §11.8 parent-swap defense). Carrying only decoded claims is
+ * NOT sufficient — the caller MUST supply the parent's original signed
+ * token and its issuer's public key so verifyMandate() can cryptographically
+ * re-check the parent's current signature validity, not trust a cached copy.
+ */
+export interface ParentMandateRef {
+  claims: MJWTClaims;
+  token: string;
+  issuerPublicKey: CryptoKey;
+}
+
 /** Minimal context the GEC needs to verify a Transition Request. Not from the MJWT itself. */
 export interface GECVerificationContext {
   gec_instance_id: string;        // KIA-attested instance identifier (aud)
@@ -297,12 +310,19 @@ export async function signMandate(claims: MJWTClaims, privateKey: CryptoKey, kid
  * spending crypto cycles / leaking timing signal on tokens not addressed
  * to this GEC; Step 2 before Step 3 prevents the alg:none / PlainJWT
  * bypass class, MJWT-02 §11, CVE-2026-29000).
+ *
+ * Step 9 (MJWT-04 §8.1, §11.8): if the caller supplies `parent`, its
+ * signature and revocation status are re-verified live at the time of
+ * THIS call — a previously-decoded, cached MJWTClaims object is not
+ * accepted on its own. This closes the "parent-swap" window: a
+ * faithfully-recorded delegation chain does not guarantee the parent
+ * mandate is still valid at the moment a Child Mandate is used.
  */
 export async function verifyMandate(
   token: string,
   issuerPublicKey: CryptoKey,
   ctx: GECVerificationContext,
-  parent?: MJWTClaims,
+  parent?: ParentMandateRef,
 ): Promise<VerificationResult> {
   // Steps 1-2 require inspecting the token before full signature verification.
   const { payload: unverifiedClaims, protectedHeader } = decodeUnverified(token);
@@ -358,12 +378,25 @@ export async function verifyMandate(
     return fail(8, MJWTDenyCode.MJWT_CEILING_INSUFFICIENT, 'mandate_ceiling below GEC conformance level');
   }
 
-  // Step 9 — Narrowing Property (Child Mandates only).
+  // Step 9 — Narrowing Property (Child Mandates only). [UPDATED in MJWT-04]
   if (claims.parent_mandate_id) {
     if (!parent) {
       return fail(9, MJWTDenyCode.NARROWING_VIOLATION, 'parent_mandate_id present but parent mandate not resolvable');
     }
-    const narrowingResult = verifyNarrowingProperty(claims, parent);
+
+    // MJWT-04 §8.1 Step 9 / §11.8: live re-verification, not a cached copy.
+    // (a) parent's jti MUST NOT be revoked (directly or cascade) right now.
+    if (ctx.revoked_jtis.has(parent.claims.jti)) {
+      return fail(9, MJWTDenyCode.NARROWING_VIOLATION, 'parent mandate jti is revoked — parent-swap defense (MJWT-04 §11.8)');
+    }
+    // (b) parent's signature MUST currently verify against its issuer's key.
+    try {
+      await jwtVerify(parent.token, parent.issuerPublicKey, { algorithms: ['EdDSA'] });
+    } catch {
+      return fail(9, MJWTDenyCode.NARROWING_VIOLATION, 'parent mandate signature does not currently verify — parent-swap defense (MJWT-04 §11.8)');
+    }
+
+    const narrowingResult = verifyNarrowingProperty(claims, parent.claims);
     if (!narrowingResult.ok) return narrowingResult;
   }
 
@@ -387,7 +420,7 @@ export async function verifyMandate(
 
   // Step 13 — Consent scope validation [NEW in -02].
   if (ctx.cedar_policy_requires_consent) {
-    const consentResult = validateConsentScope(claims, ctx, parent);
+    const consentResult = validateConsentScope(claims, ctx, parent?.claims);
     if (!consentResult.ok) return consentResult;
   }
 

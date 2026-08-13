@@ -1,162 +1,249 @@
-/**
- * MJWT demo — draft-sato-soos-mjwt-02
- * Run: tsx tier1/mjwt/demo.ts
- *
- * Scenario data drawn from svl/corpus-b/mjwt/happy-path.json (H-01..H-04, H-20)
- * and edge-cases.json (E-02, E-10, E-16), and MJWT-02 Appendix A.
- */
-import {
-  buildRootMandateClaims,
-  issueChildMandate,
-  signMandate,
-  verifyMandate,
-  generateDemoKeypair,
-  type MJWTClaims,
-  type GECVerificationContext,
-  type ConsentScope,
-} from './index';
+import nacl from "tweetnacl";
+import { writeFileSync, mkdirSync } from "node:fs";
+import { sha256Hex } from "./canon.js";
+import { issueGecManifest, verifyManifestSignature, assertManifestFresh, assertManifestSignatureValid } from "./manifest.js";
+import { FrostSigningCluster } from "./frost.js";
+import { deriveXpid, partyRegistryEntryHash, assertXpidVerified, verifyXpidCrossInstance } from "./xpid.js";
+import { signEventLogEntry, verifyEventLogEntry, assertEventLogEntryValid, RevocationRegistry } from "./event-log.js";
+import { KiaError, type EventLogEntry } from "./types.js";
 
-function line(title: string) {
-  console.log(`\n--- ${title} ---`);
+type SvlLog = {
+  id: string;
+  kind: "happy" | "edge";
+  scenario: string;
+  conformance_refs: string[];
+  outcome: "PASS" | "DENY";
+  deny_code?: string | undefined;
+  detail: string;
+};
+
+const logs: SvlLog[] = [];
+function log(entry: SvlLog) {
+  logs.push(entry);
+  const tag = entry.outcome === "PASS" ? "PASS" : `DENY(${entry.deny_code})`;
+  console.log(`[${entry.kind.toUpperCase()}] ${entry.id} ${tag} — ${entry.scenario}`);
 }
 
-async function main() {
-  // STUB: HMAC/GEC key management. Production: derived from KIA Governance
-  // Identity Keypair (KEE-1 P2). Two separate keypairs here: one for the
-  // human principal (Root Mandate issuer) and one for the GEC (Child Mandate issuer).
-  const humanKeys = await generateDemoKeypair();
-  const gecKeys = await generateDemoKeypair();
-  const agentKeys = await generateDemoKeypair();
-  const subAgentKeys = await generateDemoKeypair();
+console.log("=== SOOS Step 6 — KIA (draft-sato-soos-kia-03 + proposed -04) ===\n");
 
-  const consentScope: ConsentScope = {
-    data_subject_id: 'ps-hp-001-sha256-truncated',
-    consent_reference: 'https://consent.myauberge.jp/records/c-2026-001',
-    consent_timestamp: '2026-06-15T08:00:00Z',
-    consenting_party: 'SELF',
-    purpose_codes: ['BOOKING', 'AI_AGENT_OPERATION'],
-    data_categories: ['contact', 'travel_preference'],
-    jurisdiction: 'JP',
-    governing_law: 'APPI:2003:Art17',
-    expiry: '2099-08-15T08:00:00Z', // far future so the happy-path demo doesn't hit MJWT_CONSENT_EXPIRED
-    sub_agent_scope: 'RESTRICT',
-  };
-
-  // --- H-01 / H-02: Root Mandate issuance + full verification -------------
-  line('H-01: Root Mandate issuance (hp-001 -> ota-booking-agent-v2)');
-  const gecInstanceId = 'kernel-fp:myauberge-gec-001';
-  const rootClaims: MJWTClaims = buildRootMandateClaims({
-    human_principal_id: 'hp-001',
-    agent_wid: 'wimse:agent:ota-booking-agent-v2',
-    so_id: '019547ab-1234-7abc-8def-000000000099',
-    so_type_id: 'atp/booking-object/1.0',
-    cedar_actions: ['atp:booking:confirm', 'atp:booking:cancel', 'atp:booking:suspend'],
-    mandate_ceiling: 2,
-    aud: gecInstanceId,
-    exp: Math.floor(Date.now() / 1000) + 86400,
-    permitted_states: ['CONFIRMED', 'PRE_ACTIVITY', 'IN_JOURNEY'],
-    permitted_phases: ['ACTIVE'],
-    mission_ref: 'mission-uuid-azusa-journey-2026-06-15',
-    consent_scope: consentScope,
-    agent_public_jwk: agentKeys.publicJwk,
-  });
-  const rootToken = await signMandate(rootClaims, humanKeys.privateKey, 'hp-001-ed25519-key-1');
-  console.log(`jti: ${rootClaims.jti}`);
-  console.log(`cedar_actions: ${rootClaims.cedar_actions.join(', ')}`);
-  console.log(`sub_agent_scope: ${rootClaims.sub_agent_scope}`);
-
-  line('H-02: GEC verifies Root Mandate — all 13 steps');
-  const rootCtx: GECVerificationContext = {
-    gec_instance_id: gecInstanceId,
-    gec_conformance_level: 2,
-    so_current_state: 'IN_JOURNEY',
-    so_current_phase: 'ACTIVE',
-    so_human_principal_id: 'hp-001',
-    requested_cedar_action: 'atp:booking:suspend',
-    idp_mission_ref: 'mission-uuid-azusa-journey-2026-06-15',
-    cedar_policy_requires_consent: true,
-    cedar_policy_purpose_code: 'BOOKING',
-    revoked_jtis: new Set(),
-  };
-  const rootResult = await verifyMandate(rootToken, humanKeys.publicKey, rootCtx);
-  console.log(`Result: ${rootResult.ok ? 'PERMIT' : `DENY (${rootResult.deny_code})`}`);
-
-  // --- H-03 / H-04: Child Mandate — narrowed, verified with Narrowing Property
-  line('H-03: Child Mandate issuance (GEC -> weather-monitor-agent-v1), narrowed');
-  const childClaims = issueChildMandate({
-    parent: rootClaims,
-    issuer_gec_id: 'gec-myauberge-001',
-    agent_wid: 'wimse:agent:weather-monitor-agent-v1',
-    agent_public_jwk: subAgentKeys.publicJwk,
-    cedar_actions: ['atp:booking:suspend'],
-    exp: rootClaims.exp - 43200, // earlier than parent — dimension (e)
-    permitted_states: ['IN_JOURNEY'],
-    permitted_phases: ['ACTIVE'],
-    consent_scope: { ...consentScope, purpose_codes: ['BOOKING'], data_categories: [], sub_agent_scope: 'NONE' },
-    sub_agent_scope: 'NONE', // narrowed from parent's RESTRICT — permitted per §5.2(g)
-  });
-  const childToken = await signMandate(childClaims, gecKeys.privateKey, 'gec-myauberge-001-key-1');
-  console.log(`parent_mandate_id: ${childClaims.parent_mandate_id}`);
-  console.log(`delegation_chain length: ${childClaims.delegation_chain?.length}`);
-  console.log(`sub_agent_scope narrowed: RESTRICT -> ${childClaims.sub_agent_scope}`);
-
-  line('H-04 / H-20: GEC verifies Child Mandate — Narrowing Property + consent Step 13');
-  const childCtx: GECVerificationContext = {
-    ...rootCtx,
-    so_current_state: 'IN_JOURNEY',
-  };
-  const childResult = await verifyMandate(childToken, gecKeys.publicKey, childCtx, rootClaims);
-  console.log(`Result: ${childResult.ok ? 'PERMIT' : `DENY (${childResult.deny_code})`}`);
-
-  // --- E-10: NARROWING_VIOLATION — attempted authority expansion ----------
-  line('E-10: NARROWING_VIOLATION — child attempts a cedar_action outside parent scope');
-  try {
-    issueChildMandate({
-      parent: rootClaims,
-      issuer_gec_id: 'gec-myauberge-001',
-      agent_wid: 'wimse:agent:rogue-sub-agent',
-      agent_public_jwk: subAgentKeys.publicJwk,
-      cedar_actions: ['atp:booking:confirm', 'atp:booking:delete_forever'], // not in parent's cedar_actions
-      exp: rootClaims.exp,
-    });
-    console.log('UNEXPECTED: issuance succeeded');
-  } catch (e) {
-    console.log(`Rejected at issuance: ${(e as Error).message}`);
-  }
-
-  // --- E-02: MJWT_ALG_INVALID — alg:none bypass attempt -------------------
-  line('E-02: MJWT_ALG_INVALID — forged alg:none token, must fail at Step 2, before Step 3');
-  const forgedHeader = Buffer.from(JSON.stringify({ alg: 'none' })).toString('base64url');
-  const forgedPayload = Buffer.from(JSON.stringify({ ...rootClaims })).toString('base64url');
-  const forgedToken = `${forgedHeader}.${forgedPayload}.`;
-  const forgedResult = await verifyMandate(forgedToken, humanKeys.publicKey, rootCtx);
-  console.log(`Result: ${forgedResult.ok ? 'PERMIT' : `DENY (${forgedResult.deny_code}) at step ${forgedResult.failed_step}`}`);
-
-  // --- E-16: MJWT_CONSENT_ABSENT — consent_scope missing ------------------
-  line('E-16: MJWT_CONSENT_ABSENT — Cedar policy requires consent, MJWT carries none');
-  const noConsentParams: Parameters<typeof buildRootMandateClaims>[0] = {
-    human_principal_id: 'hp-001',
-    agent_wid: 'wimse:agent:ota-booking-agent-v2',
-    so_id: rootClaims.so_id,
-    so_type_id: rootClaims.so_type_id,
-    cedar_actions: rootClaims.cedar_actions,
-    mandate_ceiling: 2,
-    aud: gecInstanceId,
-    exp: rootClaims.exp,
-    permitted_states: rootClaims.permitted_states,
-    permitted_phases: rootClaims.permitted_phases,
-    agent_public_jwk: agentKeys.publicJwk,
-    // consent_scope intentionally omitted
-  };
-  const noConsentClaims = buildRootMandateClaims(noConsentParams);
-  const noConsentToken = await signMandate(noConsentClaims, humanKeys.privateKey, 'hp-001-ed25519-key-1');
-  const noConsentResult = await verifyMandate(noConsentToken, humanKeys.publicKey, rootCtx);
-  console.log(`Result: ${noConsentResult.ok ? 'PERMIT' : `DENY (${noConsentResult.deny_code}) — ${noConsentResult.detail}`}`);
-
-  console.log('\nDemo complete. Full happy-path (20) and edge-case (21) corpora: svl/corpus-b/mjwt/');
-}
-
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
+// ---------------------------------------------------------------------------
+// 1. Standard (non-FROST) GEC Manifest issuance, including -04 fields
+// ---------------------------------------------------------------------------
+const kernelKeypair = nacl.sign.keyPair();
+const manifest = issueGecManifest({
+  kernelKeypair,
+  operatorIdentity: sha256Hex("myauberge-operator-root-pubkey"),
+  hardwareBacked: true,
+  ptdEndpoint: "https://kernel.myauberge.example/ptd",
+  ptdCurrentVersion: "1.3.0",
+  kernelVersion: "0.9.0-step6",
+  loadedPolicyIds: ["policy:default-allow-none", "policy:farm-ops-v1"],
+  cedarPolicyHash: sha256Hex("cedar-policy-set-v1"),
+  deploymentConstraints: [],
+  implementsXpid: true,
+  kernelVersionDate: "2026-07-01", // -04 CONF-KIA-24: source release date, not compile clock
+  kernelImplementerId: sha256Hex("myauberge-implementer-signing-pubkey"), // -04 CONF-KIA-25
 });
+
+const manifestValid = verifyManifestSignature(manifest, kernelKeypair.publicKey);
+log({
+  id: "HP-KIA-01",
+  kind: "happy",
+  scenario: "Standard deployment GEC Manifest issuance + signature verification, incl. -04 kernel_version_date/kernel_implementer_id",
+  conformance_refs: ["§5.2", "CONF-KIA-24 (proposed)", "CONF-KIA-25 (proposed)"],
+  outcome: manifestValid ? "PASS" : "DENY",
+  detail: `manifest_signature verifies=${manifestValid}; kernel_version_date=${manifest.fields.kernel_version_date}; kernel_implementer_id=${manifest.fields.kernel_implementer_id.slice(0, 16)}…`,
+});
+
+try {
+  assertManifestFresh(manifest, Date.now());
+  log({
+    id: "HP-KIA-02",
+    kind: "happy",
+    scenario: "Manifest freshness check within §5.4 staleness limit",
+    conformance_refs: ["§5.4"],
+    outcome: "PASS",
+    detail: "age well under 86400s limit",
+  });
+} catch (e) {
+  if (e instanceof KiaError) log({ id: "HP-KIA-02", kind: "happy", scenario: "freshness check", conformance_refs: ["§5.4"], outcome: "DENY", deny_code: e.code, detail: e.message });
+}
+
+// EDGE: stale manifest (simulate attestation_timestamp 2 days old)
+const staleManifest = { ...manifest, fields: { ...manifest.fields, attestation_timestamp: new Date(Date.now() - 2 * 86400 * 1000).toISOString() } };
+try {
+  assertManifestFresh(staleManifest);
+  log({ id: "EDGE-KIA-01", kind: "edge", scenario: "Stale manifest (>86400s) should be rejected for federation", conformance_refs: ["§5.4", "§6.4(c)"], outcome: "PASS", detail: "UNEXPECTED: stale manifest was not rejected" });
+} catch (e) {
+  if (e instanceof KiaError) log({ id: "EDGE-KIA-01", kind: "edge", scenario: "Stale manifest (>86400s) should be rejected for federation", conformance_refs: ["§5.4", "§6.4(c)"], outcome: "DENY", deny_code: e.code, detail: e.message });
+}
+
+// EDGE: tampered manifest field invalidates signature
+const tamperedManifest = { ...manifest, fields: { ...manifest.fields, cedar_policy_hash: sha256Hex("tampered") } };
+try {
+  assertManifestSignatureValid(tamperedManifest, kernelKeypair.publicKey);
+  log({ id: "EDGE-KIA-02", kind: "edge", scenario: "Tampered manifest field must invalidate manifest_signature", conformance_refs: ["§15.2"], outcome: "PASS", detail: "UNEXPECTED: tamper not detected" });
+} catch (e) {
+  if (e instanceof KiaError) log({ id: "EDGE-KIA-02", kind: "edge", scenario: "Tampered manifest field must invalidate manifest_signature", conformance_refs: ["§15.2"], outcome: "DENY", deny_code: e.code, detail: e.message });
+}
+
+// ---------------------------------------------------------------------------
+// 2. FROST threshold signing — quorum enforcement + nonce reuse defense
+// ---------------------------------------------------------------------------
+const cluster = new FrostSigningCluster(3, ["node-a", "node-b", "node-c", "node-d", "node-e"]);
+
+try {
+  const sig = cluster.sign({ some: "gec-artifact" }, ["node-a", "node-b", "node-c"]);
+  const ok = cluster.verify({ some: "gec-artifact" }, sig);
+  log({ id: "HP-KIA-03", kind: "happy", scenario: "FROST 3-of-5 quorum reached, signature verifies", conformance_refs: ["§4.1", "CONF-KIA-16", "CONF-KIA-17"], outcome: ok ? "PASS" : "DENY", detail: `quorum met with node-a/b/c, verify=${ok}` });
+} catch (e) {
+  if (e instanceof KiaError) log({ id: "HP-KIA-03", kind: "happy", scenario: "FROST quorum signing", conformance_refs: ["§4.1"], outcome: "DENY", deny_code: e.code, detail: e.message });
+}
+
+// EDGE: below-quorum signing attempt MUST refuse, MUST NOT degrade to single-signer (CONF-KIA-18)
+try {
+  cluster.sign({ some: "artifact-2" }, ["node-a", "node-b"]);
+  log({ id: "EDGE-KIA-03", kind: "edge", scenario: "Below-quorum (2-of-5, need 3) signing attempt", conformance_refs: ["CONF-KIA-18", "CONF-KIA-19"], outcome: "PASS", detail: "UNEXPECTED: signed below quorum" });
+} catch (e) {
+  if (e instanceof KiaError) log({ id: "EDGE-KIA-03", kind: "edge", scenario: "Below-quorum (2-of-5, need 3) signing attempt refused, no single-signer fallback", conformance_refs: ["CONF-KIA-18", "CONF-KIA-19"], outcome: "DENY", deny_code: e.code, detail: e.message + " — caller MUST emit KERNEL_AUDIT_ANOMALY (CONF-KIA-19)" });
+}
+
+// EDGE: nonce reuse across two signing ops by the same participant (§15.8 attack vector)
+try {
+  const fixedNonce = "reused-nonce-value";
+  cluster.sign({ x: 1 }, ["node-a", "node-b", "node-c"], { forceNonceReuse: fixedNonce });
+  cluster.sign({ x: 2 }, ["node-a", "node-b", "node-c"], { forceNonceReuse: fixedNonce });
+  log({ id: "EDGE-KIA-04", kind: "edge", scenario: "FROST nonce reuse across two signing ops by same participants", conformance_refs: ["CONF-KIA-16", "§15.8"], outcome: "PASS", detail: "UNEXPECTED: nonce reuse not detected" });
+} catch (e) {
+  if (e instanceof KiaError) log({ id: "EDGE-KIA-04", kind: "edge", scenario: "FROST nonce reuse across two signing ops by same participants — secret share exposure risk", conformance_refs: ["CONF-KIA-16", "§15.8"], outcome: "DENY", deny_code: e.code, detail: e.message });
+}
+
+// EDGE: [NEW post-session] duplicate participant IDs MUST NOT satisfy quorum.
+// Only node-a and node-b are distinct responders (threshold is 3); node-a is
+// listed twice. Reproduces the exact bypass found in review against the
+// pre-fix frost.ts, where filter() without dedup let responders.length reach
+// 3 with only 2 real signers.
+try {
+  const cluster2 = new FrostSigningCluster(3, ["node-a", "node-b", "node-c", "node-d", "node-e"]);
+  cluster2.sign({ some: "dup-quorum-artifact" }, ["node-a", "node-a", "node-b"]);
+  log({ id: "EDGE-KIA-09", kind: "edge", scenario: "Duplicate participant ID must not satisfy quorum (2 distinct signers, threshold 3)", conformance_refs: ["CONF-KIA-18"], outcome: "PASS", detail: "UNEXPECTED: signed with only 2 distinct participants" });
+} catch (e) {
+  if (e instanceof KiaError) log({ id: "EDGE-KIA-09", kind: "edge", scenario: "Duplicate participant ID must not satisfy quorum (2 distinct signers, threshold 3)", conformance_refs: ["CONF-KIA-18"], outcome: "DENY", deny_code: e.code, detail: e.message });
+}
+
+// ---------------------------------------------------------------------------
+// 3. XPID derivation and cross-instance verification (§6, CVE-2025-13609 class)
+// ---------------------------------------------------------------------------
+const partyEntryHash = partyRegistryEntryHash(JSON.stringify({ agent: "planning-agent-01", org: "myauberge" }));
+const presentingFingerprint = manifest.fields.kernel_keypair_fingerprint;
+const xpid = deriveXpid(presentingFingerprint, partyEntryHash);
+
+log({ id: "HP-KIA-04", kind: "happy", scenario: "XPID derived deterministically from kernel fingerprint + party registry hash", conformance_refs: ["§6.2", "CONF-KIA-21"], outcome: "PASS", detail: `xpid=${xpid}` });
+
+try {
+  assertXpidVerified(xpid, presentingFingerprint, partyEntryHash);
+  log({ id: "HP-KIA-05", kind: "happy", scenario: "Receiving kernel recomputes and verifies XPID — matches", conformance_refs: ["§6.3(c)", "CONF-KIA-22"], outcome: "PASS", detail: "recomputed XPID matches presented XPID" });
+} catch (e) {
+  if (e instanceof KiaError) log({ id: "HP-KIA-05", kind: "happy", scenario: "XPID cross-instance verification", conformance_refs: ["§6.3"], outcome: "DENY", deny_code: e.code, detail: e.message });
+}
+
+// EDGE: CVE-2025-13609-class attack — attacker claims an existing XPID with a different party registry entry
+try {
+  const attackerPartyHash = partyRegistryEntryHash(JSON.stringify({ agent: "attacker-agent", org: "not-myauberge" }));
+  assertXpidVerified(xpid, presentingFingerprint, attackerPartyHash); // presents the legitimate agent's XPID
+  log({ id: "EDGE-KIA-05", kind: "edge", scenario: "CVE-2025-13609-class identity takeover: forged XPID claim with mismatched party registry entry", conformance_refs: ["§15.10", "CONF-KIA-21"], outcome: "PASS", detail: "UNEXPECTED: forged claim accepted" });
+} catch (e) {
+  if (e instanceof KiaError) log({ id: "EDGE-KIA-05", kind: "edge", scenario: "CVE-2025-13609-class identity takeover: forged XPID claim with mismatched party registry entry — rejected", conformance_refs: ["§15.10", "CONF-KIA-21"], outcome: "DENY", deny_code: e.code, detail: e.message });
+}
+
+// EDGE: client-supplied XPID must never be trusted directly — this is a structural test that
+// verifyXpidCrossInstance always returns the recomputed value, never the presented one.
+{
+  const clientClaimedXpid = "00000000-0000-5000-8000-000000000000";
+  const { recomputedXpid, matches } = verifyXpidCrossInstance(clientClaimedXpid, presentingFingerprint, partyEntryHash);
+  log({
+    id: "EDGE-KIA-06",
+    kind: "edge",
+    scenario: "Client-supplied arbitrary XPID is never trusted as authoritative — recomputation always wins",
+    conformance_refs: ["CONF-KIA-21"],
+    outcome: !matches ? "DENY" : "PASS",
+    deny_code: !matches ? "KIA_CLIENT_SUPPLIED_XPID_REJECTED" : undefined,
+    detail: `client claimed ${clientClaimedXpid}, GEC-recomputed authoritative value is ${recomputedXpid}, matches=${matches}`,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// 4. Event Log signing (INV-9)
+// ---------------------------------------------------------------------------
+const entry: EventLogEntry = {
+  event_id: "evt-0001",
+  event_type: "SO_STATE_TRANSITION",
+  so_id: "so-farm-plan-042",
+  session_id: "sess-abc123",
+  xpid,
+  occurred_at: new Date().toISOString(),
+  payload: { from: "DRAFT", to: "ACTIVE" },
+};
+const signedEntry = signEventLogEntry(entry, kernelKeypair.secretKey, presentingFingerprint);
+const entryValid = verifyEventLogEntry(signedEntry, kernelKeypair.publicKey);
+log({ id: "HP-KIA-06", kind: "happy", scenario: "Event Log entry signed and verified (INV-9)", conformance_refs: ["§7", "INV-9"], outcome: entryValid ? "PASS" : "DENY", detail: `verify=${entryValid}` });
+
+// EDGE: tampered event log entry payload
+// [FIXED post-session] Now uses assertEventLogEntryValid, which reports the
+// dedicated KIA_EVENT_LOG_SIGNATURE_INVALID code instead of reusing the
+// Manifest's KIA_MANIFEST_SIGNATURE_INVALID.
+const tamperedEntry = { ...signedEntry, entry: { ...signedEntry.entry, payload: { from: "DRAFT", to: "ACTIVE_TAMPERED" } } };
+try {
+  assertEventLogEntryValid(tamperedEntry, kernelKeypair.publicKey);
+  log({ id: "EDGE-KIA-07", kind: "edge", scenario: "Tampered Event Log entry payload must fail signature verification", conformance_refs: ["§15.2", "INV-9"], outcome: "PASS", detail: "UNEXPECTED: tamper not detected" });
+} catch (e) {
+  if (e instanceof KiaError) log({ id: "EDGE-KIA-07", kind: "edge", scenario: "Tampered Event Log entry payload must fail signature verification", conformance_refs: ["§15.2", "INV-9"], outcome: "DENY", deny_code: e.code, detail: e.message });
+}
+
+// ---------------------------------------------------------------------------
+// 5. Revocation Registry + OQ-S-XPID-REV interim mitigation (CONF-KIA-23)
+// ---------------------------------------------------------------------------
+const registry = new RevocationRegistry();
+const jti = "mandate-jwt-jti-77x9";
+
+log({ id: "HP-KIA-07", kind: "happy", scenario: "jti not revoked — cross-instance event accepted", conformance_refs: ["§8", "CONF-KIA-23"], outcome: "PASS", detail: (() => { registry.assertNotRevoked(jti); return "no throw, jti clean"; })() });
+
+registry.revoke({ jti, revoked_at: new Date().toISOString(), revocation_scope: "THIS_MANDATE_ONLY", originating_kernel: presentingFingerprint });
+
+// EDGE: OQ-S-XPID-REV — stale XPID from revoked agent presented to a kernel that
+// hasn't seen CAEP propagation yet. The XPID itself still "verifies" (§6.4's known gap);
+// CONF-KIA-23 mandates the independent jti check as the interim mitigation.
+{
+  const xpidStillVerifies = verifyXpidCrossInstance(xpid, presentingFingerprint, partyEntryHash).matches;
+  let jtiCaughtIt = false;
+  let denyMsg = "";
+  try {
+    registry.assertNotRevoked(jti);
+  } catch (e) {
+    if (e instanceof KiaError) { jtiCaughtIt = true; denyMsg = e.message; }
+  }
+  log({
+    id: "EDGE-KIA-08",
+    kind: "edge",
+    scenario: "OQ-S-XPID-REV: revoked agent's XPID still verifies structurally, but independent jti check (CONF-KIA-23) catches the revocation",
+    conformance_refs: ["§6.4", "§15.9", "CONF-KIA-23"],
+    outcome: jtiCaughtIt ? "DENY" : "PASS",
+    deny_code: jtiCaughtIt ? "KIA_JTI_REVOKED" : undefined,
+    detail: `xpid_still_verifies=${xpidStillVerifies} (expected true — this is the documented gap), jti_check_caught_it=${jtiCaughtIt}: ${denyMsg}`,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Summary + SVL corpus emission
+// ---------------------------------------------------------------------------
+const happy = logs.filter((l) => l.kind === "happy").length;
+const edge = logs.filter((l) => l.kind === "edge").length;
+console.log(`\n${happy} happy-path + ${edge} edge/adversarial logs generated.`);
+console.log(
+  "NOTE: this is a scoped demo corpus, not the full 20+21 pattern used for",
+  "Steps 3-5. Expanding to the full corpus is deferred — see chat response for scope note.",
+);
+
+mkdirSync("svl/corpus-b/kia", { recursive: true });
+writeFileSync("svl/corpus-b/kia/logs.json", JSON.stringify(logs, null, 2));
+console.log("Corpus written to svl/corpus-b/kia/logs.json");

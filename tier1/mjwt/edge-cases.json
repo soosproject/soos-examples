@@ -1,8 +1,9 @@
 {
-  "draft": "draft-sato-soos-mjwt-02",
+  "draft": "draft-sato-soos-mjwt-04",
   "corpus": "B",
   "phase": "SVL Phase B — edge / adversarial",
   "generated": "2026-07-08",
+  "updated": "2026-07-28 — added E-22, E-23 (MJWT-04 Step 9 parent-swap defense)",
   "logs": [
     { "id": "E-01", "scenario": "MJWT_AUD_MISMATCH", "deny_step": 1, "description": "aud claim does not match the verifying GEC's instance identifier. MUST be rejected before signature verification is attempted." },
     { "id": "E-02", "scenario": "MJWT_ALG_INVALID — alg:none bypass attempt", "deny_step": 2, "description": "JOSE header specifies alg: none. MUST be rejected before signature verification (PlainJWT bypass, CVE-2026-29000 class)." },
@@ -24,6 +25,8 @@
     { "id": "E-18", "scenario": "MJWT_CONSENT_ABSENT — purpose code missing", "deny_step": 13, "description": "consent_scope is present but purpose_codes does not include the purpose code the Cedar policy declares for the requested action." },
     { "id": "E-19", "scenario": "MJWT_CONSENT_SCOPE_VIOLATION", "deny_step": 13, "description": "Child Mandate's sub_agent_scope is less restrictive than the parent's (parent NONE, child attempts INHERIT)." },
     { "id": "E-20", "scenario": "Ordering integrity check — Step 2 before Step 3", "deny_step": 2, "description": "adversarial MJWT has both alg:none AND an invalid signature. Verifier MUST report MJWT_ALG_INVALID (Step 2), never reach or report MJWT_SIGNATURE_INVALID (Step 3) — confirms short-circuit ordering, not just correct final verdict." },
-    { "id": "E-21", "scenario": "Ordering integrity check — Step 1 before Step 3", "deny_step": 1, "description": "adversarial MJWT has both aud mismatch AND an invalid signature. Verifier MUST report MJWT_AUD_MISMATCH (Step 1) without expending cryptographic resources on signature verification — the draft's stated rationale for the Step 1 -> Step 3 ordering (timing side-channel resistance)." }
+    { "id": "E-21", "scenario": "Ordering integrity check — Step 1 before Step 3", "deny_step": 1, "description": "adversarial MJWT has both aud mismatch AND an invalid signature. Verifier MUST report MJWT_AUD_MISMATCH (Step 1) without expending cryptographic resources on signature verification — the draft's stated rationale for the Step 1 -> Step 3 ordering (timing side-channel resistance)." },
+    { "id": "E-22", "scenario": "NARROWING_VIOLATION — parent-swap via revocation [NEW in -04]", "deny_step": 9, "description": "Root Mandate is revoked (added to Revocation Registry) after a Child Mandate was issued and previously verified against it. Presenting the same, otherwise-untampered Child Mandate again MUST now fail at Step 9 with NARROWING_VIOLATION — a cached/previously-verified parent object is not sufficient; live re-verification against the Revocation Registry catches it. Confirms MJWT-04 Section 8.1 Step 9 / Section 11.8 (PEDIGREE 'parent-swap' defense)." },
+    { "id": "E-23", "scenario": "NARROWING_VIOLATION — parent-swap via signature no longer verifying [NEW in -04]", "deny_step": 9, "description": "Root Mandate's signature no longer verifies against the issuer key presented at Step 9 (simulates key rotation/compromise since the parent was first issued). Child Mandate is otherwise valid and untampered. Verifier MUST reject with NARROWING_VIOLATION at Step 9 rather than trusting a previously-decoded parent claims object — confirms live signature re-verification, distinct from and in addition to the revocation check (E-22)." }
   ]
 }

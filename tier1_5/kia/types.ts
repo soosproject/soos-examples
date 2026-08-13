@@ -12,6 +12,14 @@
 //   3. Section numbering (15.12) — irrelevant to implementation, doc-only.
 // These are logged as SDB-KIA-04-01/02/03 below and in the demo output.
 // If -04 lands differently, this module's manifest fields are the blast radius.
+//
+// [UPDATED post-session] Two fixes from a sample-code review session:
+//   - FROST quorum check now dedupes respondingIds (frost.ts) — a caller
+//     passing the same participant ID twice could previously satisfy
+//     quorum with fewer distinct signers than required (CONF-KIA-18 gap).
+//   - Added KIA_EVENT_LOG_SIGNATURE_INVALID: Event Log tamper detection
+//     previously reused KIA_MANIFEST_SIGNATURE_INVALID, which could mislead
+//     a consumer keying alerts off deny-code names.
 
 /** SHA-256 hex digest. */
 export type Sha256Hex = string;
@@ -139,6 +147,7 @@ export type KiaDenyCode =
   | "KIA_JTI_REVOKED"
   | "KIA_MANIFEST_STALE"
   | "KIA_MANIFEST_SIGNATURE_INVALID"
+  | "KIA_EVENT_LOG_SIGNATURE_INVALID"
   | "KIA_CLIENT_SUPPLIED_XPID_REJECTED"
   | "KIA_NONCE_REUSE_DETECTED";
 

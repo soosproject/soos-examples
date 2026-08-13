@@ -38,6 +38,26 @@ export function verifyEventLogEntry(
   );
 }
 
+/**
+ * [NEW post-session] Assert-style counterpart to verifyEventLogEntry, mirroring
+ * manifest.ts's assertManifestSignatureValid. Previously, callers had no
+ * throwing form and demo.ts hand-rolled a deny code by reusing
+ * KIA_MANIFEST_SIGNATURE_INVALID for an Event Log failure — a naming
+ * mismatch that could mislead a consumer keying alerts off deny-code names.
+ * Uses the dedicated KIA_EVENT_LOG_SIGNATURE_INVALID code instead.
+ */
+export function assertEventLogEntryValid(
+  signed: SignedEventLogEntry,
+  kernelPublicKey: Uint8Array,
+): void {
+  if (!verifyEventLogEntry(signed, kernelPublicKey)) {
+    throw new KiaError(
+      "KIA_EVENT_LOG_SIGNATURE_INVALID",
+      "Event Log entry signature does not verify",
+    );
+  }
+}
+
 // ---------------------------------------------------------------------------
 // §8 Revocation Registry (INV-11)
 // ---------------------------------------------------------------------------

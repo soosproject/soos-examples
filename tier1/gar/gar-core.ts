@@ -1,6 +1,7 @@
 // GAR (Governance Audit Record) — core implementation
-// draft-sato-soos-gar-03
+// draft-sato-soos-gar-04 (proposed)
 // SDB-GAR-01 resolution applied — see svl/issue-log.md ISSUE-001
+// SDB-GAR-06 resolution applied — see notes below (Merkle canonicalization)
 
 import { createHash, randomBytes } from 'crypto';
 import { generateKeyPairSync, sign as edSign } from 'crypto';
@@ -58,6 +59,15 @@ export interface GAREntry {
   so_reference?: string;
 
   // soos.gar.* integrity (GAR-03 §13.7)
+  // NOTE (open question, see chat / SDB-GAR-07 candidate): prev_span_hash
+  // below covers only session_id/decision/kernel_id/cap_profile_hash/
+  // timestamp/prev_span_hash. It does NOT cover entry_id, causal_parent_id,
+  // or any §13.3 provenance field (cedar_policy_id, cap_rrs_control_id,
+  // authority_source_uri, tier, conflict_detected, escalation_class,
+  // so_reference). Only the Merkle layer (leafHash(), below) currently
+  // covers those fields, and Layer 1's own_span_hash chain does not by
+  // itself detect their tampering. Left unresolved intentionally --
+  // widening the Layer 1 field set is a spec-level decision, not a bug fix.
   prev_span_hash: string;            // 'GENESIS' for first entry in session — SDB-GAR-01
   own_span_hash: string;             // this entry's own content hash — verifyChain() failure
                                       // index fix (Step 1b finding #1): without this field,
@@ -94,6 +104,43 @@ export function computePrevSpanHash(span: {
     span.prev_span_hash,
   ].join('|');
   return createHash('sha256').update(canonical).digest('hex');
+}
+
+// ---------------------------------------------------------------------
+// canonicalize — deterministic JSON serialization (RFC 8785 JCS subset:
+// recursive key sort). Sufficient for GAREntry's field set (strings,
+// booleans, null, undefined-as-omitted). A full JCS library (e.g. the
+// `canonicalize` npm package) should replace this before production use,
+// for RFC 8785's numeric-formatting rules -- GAREntry has no numeric
+// fields today, so this subset is exact for the current schema.
+// ---------------------------------------------------------------------
+function canonicalize(value: unknown): string {
+  if (value === undefined) return 'null'; // JSON has no undefined; normalize
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    return '[' + value.map(canonicalize).join(',') + ']';
+  }
+  const obj = value as Record<string, unknown>;
+  const keys = Object.keys(obj)
+    .filter((k) => obj[k] !== undefined)
+    .sort();
+  return (
+    '{' +
+    keys.map((k) => JSON.stringify(k) + ':' + canonicalize(obj[k])).join(',') +
+    '}'
+  );
+}
+
+// ---------------------------------------------------------------------
+// leafHash — SHA-256 over the UTF-8 bytes of the JCS canonicalization of
+// the event delta record. SDB-GAR-06 fix: previously JSON.stringify(e),
+// which is not canonical across implementations (field-order dependent).
+// Returns the raw digest (Buffer), not a hex string -- see merkleRoot().
+// ---------------------------------------------------------------------
+function leafHash(entry: GAREntry): Buffer {
+  return createHash('sha256').update(canonicalize(entry), 'utf8').digest();
 }
 
 // ---------------------------------------------------------------------
@@ -245,15 +292,29 @@ export interface SessionBlock {
   };
 }
 
-function merkleRoot(leaves: string[]): string {
-  if (leaves.length === 0) return createHash('sha256').update('').digest('hex');
-  let level = leaves.map((l) => createHash('sha256').update(l).digest('hex'));
+// ---------------------------------------------------------------------
+// merkleRoot — SDB-GAR-06 fix. Takes raw leaf digests (Buffer[], from
+// leafHash()) and combines parent nodes by concatenating RAW DIGEST
+// BYTES, not hex-string text. Previously:
+//
+//   createHash('sha256').update(left + right).digest('hex')
+//
+// where left/right were hex strings -- this hashes the UTF-8 text of
+// two 64-char hex strings, not the 64 raw bytes they represent. That
+// mismatch was the IETF 126 interop divergence: "leaf = SHA-256(BYTES),
+// not hex — found the hard way." Fixed by operating on Buffers
+// throughout and hex-encoding only at the point of storage/display
+// (closeSessionBlock, below).
+// ---------------------------------------------------------------------
+function merkleRoot(leaves: Buffer[]): Buffer {
+  if (leaves.length === 0) return createHash('sha256').update('').digest();
+  let level = leaves;
   while (level.length > 1) {
-    const next: string[] = [];
+    const next: Buffer[] = [];
     for (let i = 0; i < level.length; i += 2) {
       const left = level[i];
       const right = i + 1 < level.length ? level[i + 1] : level[i];
-      next.push(createHash('sha256').update(left + right).digest('hex'));
+      next.push(createHash('sha256').update(Buffer.concat([left, right])).digest());
     }
     level = next;
   }
@@ -266,21 +327,43 @@ export function closeSessionBlock(
   signer: KIAStubSigner
 ): SessionBlock {
   const block_id = randomBytes(16).toString('hex'); // stand-in for OTel trace_id
-  const leaves = entries.map((e) => JSON.stringify(e));
+  // SDB-GAR-08 fix: attach block_id BEFORE hashing, not after. Previously
+  // the Merkle root was computed over `entries` (no block_id) while the
+  // stored `events` had block_id added afterward -- the anchored events
+  // never actually matched the root that claimed to cover them, so even
+  // an untampered block would fail recomputation. block_id is now part
+  // of the leaf content on both sides.
+  const events = entries.map((e) => ({ ...e, block_id }));
+  const leaves = events.map(leafHash);
   const root = merkleRoot(leaves);
-  const signature = signer.sign(root);
+  const rootHex = root.toString('hex');
+  const signature = signer.sign(rootHex);
 
   return {
     block_id,
     session_id,
-    events: entries.map((e) => ({ ...e, block_id })),
-    merkle_root: root,
+    events,
+    merkle_root: rootHex,
     block_signature: {
       algorithm: 'Ed25519',
       key_id: signer.publicKeyId,
       signature,
     },
   };
+}
+
+// ---------------------------------------------------------------------
+// verifySessionBlock — SDB-GAR-04 resolution. Recomputes the Merkle root
+// from the block's own events (via leafHash()/merkleRoot(), the same
+// canonicalization as closeSessionBlock) and compares against the
+// claimed merkle_root. Does NOT verify the Ed25519 signature itself --
+// that requires the signer's public key, which this Tier-1 stub does
+// not distribute; signature verification is left for the Step 6 (KIA)
+// integration.
+// ---------------------------------------------------------------------
+export function verifySessionBlock(block: SessionBlock): { valid: boolean; expectedRoot: string } {
+  const recomputed = merkleRoot(block.events.map(leafHash)).toString('hex');
+  return { valid: recomputed === block.merkle_root, expectedRoot: recomputed };
 }
 
 // tamperDetect — modify byte in entry N, verify fails at N (GAR-03 §14.4)

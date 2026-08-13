@@ -4,7 +4,7 @@ import { sha256Hex } from "./canon.js";
 import { issueGecManifest, verifyManifestSignature, assertManifestFresh, assertManifestSignatureValid } from "./manifest.js";
 import { FrostSigningCluster } from "./frost.js";
 import { deriveXpid, partyRegistryEntryHash, assertXpidVerified, verifyXpidCrossInstance } from "./xpid.js";
-import { signEventLogEntry, verifyEventLogEntry, RevocationRegistry } from "./event-log.js";
+import { signEventLogEntry, verifyEventLogEntry, assertEventLogEntryValid, RevocationRegistry } from "./event-log.js";
 import { KiaError, type EventLogEntry } from "./types.js";
 
 type SvlLog = {
@@ -118,6 +118,19 @@ try {
   if (e instanceof KiaError) log({ id: "EDGE-KIA-04", kind: "edge", scenario: "FROST nonce reuse across two signing ops by same participants — secret share exposure risk", conformance_refs: ["CONF-KIA-16", "§15.8"], outcome: "DENY", deny_code: e.code, detail: e.message });
 }
 
+// EDGE: [NEW post-session] duplicate participant IDs MUST NOT satisfy quorum.
+// Only node-a and node-b are distinct responders (threshold is 3); node-a is
+// listed twice. Reproduces the exact bypass found in review against the
+// pre-fix frost.ts, where filter() without dedup let responders.length reach
+// 3 with only 2 real signers.
+try {
+  const cluster2 = new FrostSigningCluster(3, ["node-a", "node-b", "node-c", "node-d", "node-e"]);
+  cluster2.sign({ some: "dup-quorum-artifact" }, ["node-a", "node-a", "node-b"]);
+  log({ id: "EDGE-KIA-09", kind: "edge", scenario: "Duplicate participant ID must not satisfy quorum (2 distinct signers, threshold 3)", conformance_refs: ["CONF-KIA-18"], outcome: "PASS", detail: "UNEXPECTED: signed with only 2 distinct participants" });
+} catch (e) {
+  if (e instanceof KiaError) log({ id: "EDGE-KIA-09", kind: "edge", scenario: "Duplicate participant ID must not satisfy quorum (2 distinct signers, threshold 3)", conformance_refs: ["CONF-KIA-18"], outcome: "DENY", deny_code: e.code, detail: e.message });
+}
+
 // ---------------------------------------------------------------------------
 // 3. XPID derivation and cross-instance verification (§6, CVE-2025-13609 class)
 // ---------------------------------------------------------------------------
@@ -176,9 +189,16 @@ const entryValid = verifyEventLogEntry(signedEntry, kernelKeypair.publicKey);
 log({ id: "HP-KIA-06", kind: "happy", scenario: "Event Log entry signed and verified (INV-9)", conformance_refs: ["§7", "INV-9"], outcome: entryValid ? "PASS" : "DENY", detail: `verify=${entryValid}` });
 
 // EDGE: tampered event log entry payload
+// [FIXED post-session] Now uses assertEventLogEntryValid, which reports the
+// dedicated KIA_EVENT_LOG_SIGNATURE_INVALID code instead of reusing the
+// Manifest's KIA_MANIFEST_SIGNATURE_INVALID.
 const tamperedEntry = { ...signedEntry, entry: { ...signedEntry.entry, payload: { from: "DRAFT", to: "ACTIVE_TAMPERED" } } };
-const tamperedValid = verifyEventLogEntry(tamperedEntry, kernelKeypair.publicKey);
-log({ id: "EDGE-KIA-07", kind: "edge", scenario: "Tampered Event Log entry payload must fail signature verification", conformance_refs: ["§15.2", "INV-9"], outcome: tamperedValid ? "PASS" : "DENY", deny_code: tamperedValid ? undefined : "KIA_MANIFEST_SIGNATURE_INVALID", detail: `verify=${tamperedValid} (expected false)` });
+try {
+  assertEventLogEntryValid(tamperedEntry, kernelKeypair.publicKey);
+  log({ id: "EDGE-KIA-07", kind: "edge", scenario: "Tampered Event Log entry payload must fail signature verification", conformance_refs: ["§15.2", "INV-9"], outcome: "PASS", detail: "UNEXPECTED: tamper not detected" });
+} catch (e) {
+  if (e instanceof KiaError) log({ id: "EDGE-KIA-07", kind: "edge", scenario: "Tampered Event Log entry payload must fail signature verification", conformance_refs: ["§15.2", "INV-9"], outcome: "DENY", deny_code: e.code, detail: e.message });
+}
 
 // ---------------------------------------------------------------------------
 // 5. Revocation Registry + OQ-S-XPID-REV interim mitigation (CONF-KIA-23)
@@ -220,7 +240,7 @@ const happy = logs.filter((l) => l.kind === "happy").length;
 const edge = logs.filter((l) => l.kind === "edge").length;
 console.log(`\n${happy} happy-path + ${edge} edge/adversarial logs generated.`);
 console.log(
-  "NOTE: this is a scoped demo corpus (7+8), not the full 20+21 pattern used for",
+  "NOTE: this is a scoped demo corpus, not the full 20+21 pattern used for",
   "Steps 3-5. Expanding to the full corpus is deferred — see chat response for scope note.",
 );
 

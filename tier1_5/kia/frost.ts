@@ -50,9 +50,16 @@ export class FrostSigningCluster {
    * Sign with a simulated quorum of `respondingIds`.
    * CONF-KIA-18: refuses below threshold, MUST NOT degrade to single-signer.
    * CONF-KIA-19: caller should emit KERNEL_AUDIT_ANOMALY on the thrown error.
+   *
+   * [FIXED post-session] `respondingIds` is deduplicated before the
+   * threshold check. Previously, a caller passing the same participant ID
+   * more than once (e.g. ["node-a", "node-a", "node-b"] against a
+   * threshold of 3) could satisfy quorum with only 2 distinct signers
+   * actually responding — a real bypass of CONF-KIA-18, reproduced
+   * directly against the pre-fix version of this file.
    */
   sign(value: unknown, respondingIds: string[], opts?: { forceNonceReuse?: string }): string {
-    const responders = respondingIds.filter((id) => this.participants.has(id));
+    const responders = [...new Set(respondingIds.filter((id) => this.participants.has(id)))];
     if (responders.length < this.threshold) {
       throw new KiaError(
         "KIA_QUORUM_FAILURE",
