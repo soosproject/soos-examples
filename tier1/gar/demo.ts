@@ -4,6 +4,13 @@
 // Session Block (Merkle root + KIA signature) -> chain verification ->
 // tamper -> chain verification fails at the tampered entry.
 //
+// Current against gar-core.ts (SDB-GAR-01/-03/-04/-06/-08/-09/-10 fixes
+// applied) -- every causal_parent_id below references a real prior
+// entry_id, so this walkthrough's happy path is unaffected by the
+// SDB-GAR-03 referential-integrity check. See generate-edge-logs.ts
+// GAR-EDGE-003/GAR-EDGE-011 for what a rejected append / signer failure
+// actually looks like.
+//
 // Event shape and field values are drawn from GAR-HP-006
 // (svl/corpus-b/gar/hp/GAR-HP-006.json — the CEDAR_DENY mid-session
 // happy-path log), with an HEM_ESCALATION entry added per the Step 1d demo

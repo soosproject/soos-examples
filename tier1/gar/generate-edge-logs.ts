@@ -9,6 +9,9 @@ import {
   GARLog,
   KIAStubSigner,
   closeSessionBlock,
+  verifySessionBlock,
+  GarSignerFailureError,
+  GarBlockSigner,
   ALEType,
   GAREntry,
 } from './gar-core';
@@ -75,9 +78,9 @@ console.log('GAR-EDGE-002 — single entry, GENESIS sentinel...');
 }
 
 // =====================================================================
-// GAR-EDGE-003 — Out-of-order append
+// GAR-EDGE-003 — Out-of-order timestamp + dangling causal_parent_id
 // =====================================================================
-console.log('GAR-EDGE-003 — out-of-order append...');
+console.log('GAR-EDGE-003 — out-of-order timestamp + dangling causal_parent_id...');
 {
   const log = new GARLog();
   const session_id = `edge-003-${randomUUID().slice(0, 8)}`;
@@ -88,45 +91,47 @@ console.log('GAR-EDGE-003 — out-of-order append...');
     decision: 'PERMIT', kernel_id: 'k1', cap_profile_hash: 'abc',
   });
 
-  // e2 has an EARLIER timestamp than e1, and references a causal_parent_id
-  // that does not exist in the log at all.
+  // e2 has an EARLIER timestamp than e1, AND references a causal_parent_id
+  // that does not exist in the log at all. Two independent concerns bundled
+  // in one scenario on purpose -- SDB-GAR-03's fix only addresses the second.
   let threw = false;
+  let errorMessage = '';
   let e2: GAREntry | null = null;
   try {
     e2 = log.append({
       entry_id: randomUUID(), ale_type: ALEType.SESSION_END, session_id,
-      actor_id: 'agent-1', timestamp: now(0), // earlier than e1
+      actor_id: 'agent-1', timestamp: now(0), // earlier than e1 -- still not validated, and correctly so
       causal_parent_id: 'nonexistent-entry-id-999',
       decision: 'PERMIT', kernel_id: 'k1', cap_profile_hash: 'abc',
     });
-  } catch (err) {
+  } catch (err: any) {
     threw = true;
+    errorMessage = err.message;
   }
 
   writeEdge('GAR-EDGE-003', {
     scenario:
       'Out-of-order append — second entry has an earlier timestamp than the first, AND ' +
       'references a causal_parent_id that does not exist anywhere in the log',
-    expected_per_plan: 'Reject or throw',
+    expected_per_plan: 'Reject the dangling causal_parent_id; timestamp order is not a chain-integrity concern',
     actual: {
       threw,
+      errorMessage,
       e1_timestamp: e1.timestamp,
-      e2_timestamp: e2?.timestamp ?? null,
-      e2_causal_parent_id: e2?.causal_parent_id ?? null,
+      e2_appended: e2 !== null,
       chain_verification: log.verifyChain(session_id),
     },
-    classification: 'Type II — gap',
+    classification: 'SDB-GAR-03 confirmed fixed; timestamp non-enforcement confirmed correct (not a gap)',
     note:
-      'append() currently performs NO validation of (a) timestamp monotonicity or ' +
-      "(b) whether causal_parent_id refers to an entry that actually exists in the log. " +
-      'Both were silently accepted; verifyChain() still reports valid because the hash chain ' +
-      'is computed from append-call order, not from timestamp or causal_parent_id. This is an ' +
-      'integration gap between two individually-reasonable pieces: the hash chain guarantees ' +
-      'append-order integrity, but causal_parent_id is currently decorative — nothing enforces ' +
-      'it references a real prior entry. Logged as SDB-GAR-03 (Type II gap) — a Decision ' +
-      'Record is needed on whether GARLog should validate causal_parent_id referential ' +
-      'integrity and/or timestamp ordering at append() time, or whether this is left to a ' +
-      'higher layer (e.g. SOV Event Stream). TODO marker added in code.',
+      'Two previously-bundled findings, now resolved differently: (1) the dangling ' +
+      "causal_parent_id is REJECTED -- append() now throws (GAR-06 §6.2, SDB-GAR-03 fix). " +
+      'e2 was never appended, so the log ends with only e1 and chain_verification reports ' +
+      "valid for that single-entry session. (2) Timestamp ordering remains intentionally " +
+      "unenforced -- GAR-06 does not require monotonicity, and GAR-EDGE-005 already confirmed " +
+      "out-of-order/identical timestamps are harmless to chain integrity (append-order-keyed, " +
+      "not timestamp-keyed). This was never a gap, just bundled into the same scenario as the " +
+      "causal_parent_id check for convenience. SDB-GAR-03's dangling-reference gap (previously " +
+      "'decorative, no enforcement, TODO marker') is now closed.",
     sdb_entry: 'SDB-GAR-03',
   });
 }
@@ -308,24 +313,32 @@ console.log('GAR-EDGE-008 — Session Block missing entry from Merkle set...');
   const fullBlock = closeSessionBlock(session_id, fullEntries, signer);
   const partialBlock = closeSessionBlock(session_id, partialEntries, signer);
 
+  // SDB-GAR-04 is resolved: verifySessionBlock() now exists. Demonstrate a receiving
+  // party using it to catch a Session Block whose claimed merkle_root doesn't match
+  // an independently-held copy of the entries -- e.g. partialBlock's events arrived,
+  // but the receiver recomputes against the ORIGINAL fullEntries it already had.
+  const tamperCheck = verifySessionBlock({ ...partialBlock, events: fullEntries });
+
   writeEdge('GAR-EDGE-008', {
     scenario: 'Session Block Merkle root computed twice: once over all 4 entries, once with entry index 2 dropped',
-    expected_per_plan: 'Merkle root mismatch',
+    expected_per_plan: 'Merkle root mismatch, detectable by a receiving party',
     actual: {
       full_merkle_root: fullBlock.merkle_root,
       partial_merkle_root: partialBlock.merkle_root,
       roots_differ: fullBlock.merkle_root !== partialBlock.merkle_root,
+      verify_partial_block_against_full_entries: tamperCheck,
+      verify_full_block_self_consistent: verifySessionBlock(fullBlock),
     },
-    classification: 'Confirmed correct — not a new finding',
+    classification: 'Confirmed correct; SDB-GAR-04 confirmed resolved',
     note:
-      'Merkle roots differ as expected — closeSessionBlock() takes the entries array as-is ' +
+      'Merkle roots differ as expected -- closeSessionBlock() takes the entries array as-is ' +
       'and hashes each as a leaf, so a dropped entry produces a different tree deterministically. ' +
-      'One open question worth flagging as SDB-GAR-04 (non-blocking, Type II gap): GAR-03 does ' +
-      'not specify who is responsible for verifying a received Session Block\'s merkle_root ' +
-      'against an independently-held copy of the entries — closeSessionBlock() itself has no ' +
-      'verification counterpart (only construction). A verifySessionBlock(block, entries) ' +
-      'function may be needed for a receiving party to detect this class of tampering, ' +
-      'analogous to verifyChain() for the span-level chain.',
+      'SDB-GAR-04 (previously open: "no verifySessionBlock() counterpart exists") is resolved -- ' +
+      'the function now exists and is exercised directly above: a receiving party holding the ' +
+      "original fullEntries can call verifySessionBlock() against a Session Block claiming " +
+      "partialEntries's merkle_root and get valid: false, expectedRoot != claimed root. It " +
+      'deliberately does NOT verify the Ed25519 signature itself (no public key distribution in ' +
+      'this Tier-1 stub) -- that is left for KIA integration.',
     sdb_entry: 'SDB-GAR-04',
   });
 }
@@ -363,7 +376,12 @@ console.log('GAR-EDGE-009 — GOVERNANCE_SUSPENDED provenance requirements...');
       'own mandatory field set (plausibly escalation_class + so_reference, mirroring ' +
       'HEM_ESCALATION). Logged as SDB-GAR-05 (Type II gap) — recommend GAR-04 specify ' +
       'provenance requirements for GOVERNANCE_SUSPENDED explicitly. TODO marker added in code ' +
-      'pending that decision; no enforcement added yet since the correct field set is not yet defined.',
+      'pending that decision; no enforcement added yet since the correct field set is not yet defined. ' +
+      'UPDATE (gar-core.ts current version): GAR-06\'s own ALE registry no longer lists ' +
+      'GOVERNANCE_SUSPENDED at all -- this may be superseded by CAP-04\'s own CAP_POLICY_SUSPENDED ' +
+      'event, which already has a full required field set. Flagged as an open question for Tom ' +
+      'rather than resolved here -- adding field enforcement for an ALEType GAR may no longer ' +
+      'own would be the wrong fix if the member itself is what\'s stale.',
     sdb_entry: 'SDB-GAR-05',
   });
 }
@@ -407,3 +425,80 @@ console.log('GAR-EDGE-010 — 1000-entry performance baseline...');
 }
 
 console.log('\nDone. 10 GAR-EDGE logs written to', OUT_DIR);
+
+// =====================================================================
+// GAR-EDGE-011 — KIA signer quorum failure at Session Block close
+// =====================================================================
+console.log('GAR-EDGE-011 — signer failure at Session Block close (SDB-GAR-10)...');
+{
+  const log = new GARLog();
+  const session_id = `edge-011-${randomUUID().slice(0, 8)}`;
+  let parent: string | null = null;
+  for (let i = 0; i < 3; i++) {
+    const e = log.append({
+      entry_id: randomUUID(), ale_type: ALEType.CEDAR_PERMIT, session_id,
+      actor_id: 'agent-1', timestamp: now(i), causal_parent_id: parent,
+      decision: 'PERMIT', kernel_id: 'k1', cap_profile_hash: 'abc',
+      cedar_policy_id: `p${i}`, cap_rrs_control_id: `c${i}`, authority_source_uri: `u${i}`,
+    });
+    parent = e.entry_id;
+  }
+  const entries = log.getSession(session_id);
+
+  // Simulates a real KIA FrostSigningCluster throwing KiaError('KIA_QUORUM_FAILURE', ...)
+  // -- GarBlockSigner is the narrowed interface closeSessionBlock() actually depends on,
+  // so any signer shape (stub or real FROST cluster) can be substituted here.
+  const quorumFailureSigner: GarBlockSigner = {
+    publicKeyId: 'quorum-test-key',
+    sign: () => {
+      throw new Error('KIA_QUORUM_FAILURE: insufficient signers online (2/5 required 3)');
+    },
+  };
+
+  let threw = false;
+  let isGarSignerFailureError = false;
+  let causeMessage = '';
+  try {
+    closeSessionBlock(session_id, entries, quorumFailureSigner);
+  } catch (err) {
+    threw = true;
+    if (err instanceof GarSignerFailureError) {
+      isGarSignerFailureError = true;
+      causeMessage = (err.cause as Error).message;
+    }
+  }
+
+  // Confirm a working signer still closes the block normally -- the fix changes
+  // failure handling only, not the happy path.
+  const goodSigner = new KIAStubSigner();
+  const block = closeSessionBlock(session_id, entries, goodSigner);
+
+  writeEdge('GAR-EDGE-011', {
+    scenario: 'closeSessionBlock() called with a signer that throws on sign() (simulated FROST quorum failure)',
+    expected_per_plan:
+      'GAR-06 CONF-GAR-BLOCK-01: MUST NOT close with an unsigned/partially-signed block; ' +
+      'failure MUST be distinguishable so the caller can emit KERNEL_AUDIT_ANOMALY and retry',
+    actual: {
+      threw,
+      isGarSignerFailureError,
+      cause_message: causeMessage,
+      block_never_returned: threw,
+      good_signer_still_works: block.merkle_root.length === 64,
+    },
+    classification: 'SDB-GAR-10 confirmed fixed',
+    note:
+      'Previously: closeSessionBlock() called signer.sign() with no try/catch, so a real ' +
+      "signer's failure propagated as whatever error shape that signer happened to throw -- " +
+      "no GAR-level marker a caller could reliably catch, and no emitted KERNEL_AUDIT_ANOMALY " +
+      "(despite KIA-05's CONF-KIA-19 requiring one on quorum failure). Now: the failure is " +
+      'wrapped as GarSignerFailureError with the original error preserved on .cause, and no ' +
+      'SessionBlock is ever returned on failure -- CONF-GAR-BLOCK-01 cannot be silently violated. ' +
+      'The retry/backoff loop itself is intentionally left to the caller (deployment-specific ' +
+      'quorum-restoration detection is out of scope for Tier-1 sample code) -- see the doc ' +
+      'comment on GarSignerFailureError in gar-core.ts for the expected caller pattern: catch, ' +
+      'append a KERNEL_AUDIT_ANOMALY entry, retry once quorum is restored.',
+    sdb_entry: 'SDB-GAR-10',
+  });
+}
+
+console.log('Done. GAR-EDGE-011 written to', OUT_DIR);
