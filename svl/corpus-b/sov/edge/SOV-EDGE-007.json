@@ -1,0 +1,12 @@
+{
+  "scenario": "SovereignObject constructed with parent_so_id pointing at a so_id that has no corresponding EventStream entries",
+  "expected": "Undefined by current architecture — no SO registry exists to check against",
+  "actual": {
+    "threw": false,
+    "child_so_id": "019f2cc6-6bfe-7f10-b434-c8a58f8e0a7c",
+    "child_parent_so_id": "so-id-that-was-never-created"
+  },
+  "classification": "Type II — gap",
+  "note": "Neither SovereignObject nor GECMediator maintains any central registry of created so_ids to validate parent_so_id against — each EventStream only knows about entries for so_ids it has actually seen. A dangling parent reference is accepted silently because there is structurally nothing to check it against yet. This mirrors GAR-EDGE-003/SDB-GAR-03 (dangling causal_parent_id) almost exactly. Logged as SDB-02 (Type II gap) — needs a Decision Record on whether a Tier 1 sample should maintain an in-memory SO registry for referential integrity checks, or whether this is deferred to a higher/storage layer.",
+  "sdb_entry": "SDB-02"
+}

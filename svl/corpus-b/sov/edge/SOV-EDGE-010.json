@@ -1,0 +1,11 @@
+{
+  "scenario": "1000-entry EventStream for a single so_id (1 SO_CREATED + 999 STATE_TRANSITION) — append + read",
+  "expected": "Performance baseline — completes in <1s (analogous to GAR-EDGE-010)",
+  "actual": {
+    "entry_count": 1000,
+    "append_ms": 69,
+    "read_ms": 1
+  },
+  "classification": "Confirmed within baseline — not a new finding",
+  "note": "Append: 69ms, read: 1ms for 1000 entries (including a stub Ed25519 signature per entry) — well under the 1s baseline. Not representative of a persisted, multi-writer production deployment."
+}

@@ -1,0 +1,89 @@
+{
+  "session_id": "hp-baseline-1-99336ecc",
+  "entries": [
+    {
+      "entry_id": "faf2e3ce-14aa-46e6-9236-d3a8c86b0e74",
+      "ale_type": "SESSION_START",
+      "session_id": "hp-baseline-1-99336ecc",
+      "actor_id": "agent-1",
+      "timestamp": "2026-07-04T09:13:58.605Z",
+      "causal_parent_id": null,
+      "decision": "PERMIT",
+      "kernel_id": "kernel-1",
+      "cap_profile_hash": "caphash-1",
+      "prev_span_hash": "GENESIS",
+      "own_span_hash": "6e927d378429555859199752a68a7fb8c8f4915ff113e19b3c93529c54f16a8a"
+    },
+    {
+      "entry_id": "48ab4f89-2d4b-4e7b-8750-8a8a7a1fc4bd",
+      "ale_type": "CEDAR_PERMIT",
+      "session_id": "hp-baseline-1-99336ecc",
+      "actor_id": "agent-1",
+      "timestamp": "2026-07-04T09:13:59.606Z",
+      "causal_parent_id": "faf2e3ce-14aa-46e6-9236-d3a8c86b0e74",
+      "decision": "PERMIT",
+      "kernel_id": "kernel-1",
+      "cap_profile_hash": "caphash-1",
+      "cedar_policy_id": "policy-1-0",
+      "cap_rrs_control_id": "ctrl-1-0",
+      "authority_source_uri": "https://law.example/art-1-0",
+      "tier": "Tier1",
+      "conflict_detected": false,
+      "prev_span_hash": "6e927d378429555859199752a68a7fb8c8f4915ff113e19b3c93529c54f16a8a",
+      "own_span_hash": "5a7795a35491a7b301a8a31bb99456811cbdb60cf29ee2eed3a1b055c9d94ed2"
+    },
+    {
+      "entry_id": "3ff541af-4144-4d7c-8faa-93be538e81af",
+      "ale_type": "CEDAR_PERMIT",
+      "session_id": "hp-baseline-1-99336ecc",
+      "actor_id": "agent-1",
+      "timestamp": "2026-07-04T09:14:00.606Z",
+      "causal_parent_id": "48ab4f89-2d4b-4e7b-8750-8a8a7a1fc4bd",
+      "decision": "PERMIT",
+      "kernel_id": "kernel-1",
+      "cap_profile_hash": "caphash-1",
+      "cedar_policy_id": "policy-1-1",
+      "cap_rrs_control_id": "ctrl-1-1",
+      "authority_source_uri": "https://law.example/art-1-1",
+      "tier": "Tier1",
+      "conflict_detected": false,
+      "prev_span_hash": "5a7795a35491a7b301a8a31bb99456811cbdb60cf29ee2eed3a1b055c9d94ed2",
+      "own_span_hash": "1f46c23da7ad3657052d80e741e00b5bf17b78b5020d7c0914f5c5e5691e765e"
+    },
+    {
+      "entry_id": "48a1a9c5-0621-4682-bfb2-301386d9e954",
+      "ale_type": "CEDAR_PERMIT",
+      "session_id": "hp-baseline-1-99336ecc",
+      "actor_id": "agent-1",
+      "timestamp": "2026-07-04T09:14:01.606Z",
+      "causal_parent_id": "3ff541af-4144-4d7c-8faa-93be538e81af",
+      "decision": "PERMIT",
+      "kernel_id": "kernel-1",
+      "cap_profile_hash": "caphash-1",
+      "cedar_policy_id": "policy-1-2",
+      "cap_rrs_control_id": "ctrl-1-2",
+      "authority_source_uri": "https://law.example/art-1-2",
+      "tier": "Tier1",
+      "conflict_detected": false,
+      "prev_span_hash": "1f46c23da7ad3657052d80e741e00b5bf17b78b5020d7c0914f5c5e5691e765e",
+      "own_span_hash": "0ec9be2421ead270c6c8d839d15077fe96626b13252c835041ebcc494ff0137b"
+    },
+    {
+      "entry_id": "c78336e9-6983-4493-9df4-0ff6f80726ca",
+      "ale_type": "SESSION_END",
+      "session_id": "hp-baseline-1-99336ecc",
+      "actor_id": "agent-1",
+      "timestamp": "2026-07-04T09:14:02.606Z",
+      "causal_parent_id": "48a1a9c5-0621-4682-bfb2-301386d9e954",
+      "decision": "PERMIT",
+      "kernel_id": "kernel-1",
+      "cap_profile_hash": "caphash-1",
+      "prev_span_hash": "0ec9be2421ead270c6c8d839d15077fe96626b13252c835041ebcc494ff0137b",
+      "own_span_hash": "ccbd1894c8c5bcd2a109e9a2393b61dd75213037bc9f1c8dedee4ca319dc7c2d"
+    }
+  ],
+  "chain_verification": {
+    "valid": true,
+    "failedAt": null
+  }
+}

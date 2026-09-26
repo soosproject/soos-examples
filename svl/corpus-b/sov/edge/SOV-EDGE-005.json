@@ -1,0 +1,11 @@
+{
+  "scenario": "Third edge added would close a cycle: s1 -> s2 -> s3 -> s1",
+  "expected": "Reject — plan and draft both describe Mission Plan sub-goals as \"DAG-structured\" (acyclic by definition)",
+  "actual": {
+    "threw": true,
+    "errorMessage": "MissionPlanSO edge rejected: would create a cycle (s3 -> s1) — Mission Plan sub-goals must form a DAG",
+    "edge_count_after": 2
+  },
+  "classification": "Fixed — was a real gap (Type I, our own code)",
+  "note": "Prior to this fix, addEdge() only validated that from_step_id/to_step_id referenced existing steps, with no cycle check at all — a cyclic edge set was accepted silently, directly contradicting the \"DAG-structured\" claim made about this component in both the plan and the draft. Fixed by adding a DFS-based cycle check over the proposed edge set before committing any new edge. Classified as our own implementation bug (Type I), not a draft ambiguity, since \"DAG\" is an unambiguous mathematical term we chose to use."
+}

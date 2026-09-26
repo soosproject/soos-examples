@@ -1,0 +1,198 @@
+[
+  {
+    "label": "SESSION-HP-01 initiation with XPID binding",
+    "ok": true,
+    "detail": {
+      "session_xpid": "582fe4cc-0008-54e2-ba71-7534874fe54b"
+    },
+    "timestamp": "2026-07-11T11:09:55.792Z"
+  },
+  {
+    "label": "SESSION-HP-02 EOD endorsed at init (Class 3)",
+    "ok": true,
+    "detail": {
+      "endorsed_eod_id": "64796a6c-aead-4cd6-bef8-d76da4e6237e"
+    },
+    "timestamp": "2026-07-11T11:09:55.792Z"
+  },
+  {
+    "label": "SESSION-EDGE-01 Class 3 without EOD rejected",
+    "ok": true,
+    "detail": "Class 3 agents MUST submit an EOD before session initiation",
+    "timestamp": "2026-07-11T11:09:55.794Z"
+  },
+  {
+    "label": "SESSION-HP-03 Class 1 session inits without EOD",
+    "ok": true,
+    "detail": {
+      "state": "ACTIVE"
+    },
+    "timestamp": "2026-07-11T11:09:55.795Z"
+  },
+  {
+    "label": "SESSION-EDGE-02 unregistered agent rejected",
+    "ok": true,
+    "detail": "agent_provider_id unregistered-agent has no active Party Registry entry",
+    "timestamp": "2026-07-11T11:09:55.796Z"
+  },
+  {
+    "label": "LOOP-HP-01 full SENSE-REASON-PLAN-ACT-OBSERVE cycle -> PERMIT",
+    "ok": true,
+    "detail": {
+      "result": "PERMIT",
+      "new_state": "CONFIRMED",
+      "new_phase": "ACTIVE",
+      "event_stream_entry_id": "019f50de-a2d8-7fb6-b3e3-0a04b11616a2",
+      "aep_iteration": 1
+    },
+    "timestamp": "2026-07-11T11:09:55.800Z"
+  },
+  {
+    "label": "LOOP-HP-02 aep_iteration incremented on PERMIT",
+    "ok": true,
+    "detail": {
+      "aep_iteration": 2
+    },
+    "timestamp": "2026-07-11T11:09:55.800Z"
+  },
+  {
+    "label": "SESSION-EDGE-03 XPID mismatch terminates session",
+    "ok": true,
+    "detail": {
+      "message": "derived XPID a53269ba-ac9e-5f56-a711-2a416af8cdb7 does not match session-bound XPID e2e2f01b-a5be-5301-b105-df9d341047ba — session terminated (critical security event)",
+      "state": "CLOSED"
+    },
+    "timestamp": "2026-07-11T11:09:55.802Z"
+  },
+  {
+    "label": "CAP-EDGE-01 Tier 0-A constitutional violation -> DENY before Cedar",
+    "ok": true,
+    "detail": {
+      "result": "DENY",
+      "deny_code": "CAP_CONSTITUTIONAL_VIOLATION",
+      "deny_reason": "CAP evaluation: CONSTITUTIONAL_VIOLATION (tier 0A)",
+      "idp_ref": "354f69e5-37bb-4f32-a4ce-7d07401171da",
+      "enrichment": {},
+      "aep_iteration": 1,
+      "prior_denial_count": 1,
+      "what_changed_guidance": "The next retry must reference at least one enrichment field by name."
+    },
+    "timestamp": "2026-07-11T11:09:55.805Z"
+  },
+  {
+    "label": "CEDAR-EDGE-01 Cedar DENY (forbid wins)",
+    "ok": true,
+    "detail": {
+      "result": "DENY",
+      "deny_code": "CEDAR_DENY_forbid-1",
+      "deny_reason": "Cedar policy forbid-1 forbids atp:booking:confirm",
+      "idp_ref": "f334932f-5ed4-44e6-8918-6902df6a5a8f",
+      "enrichment": {},
+      "aep_iteration": 1,
+      "prior_denial_count": 1,
+      "what_changed_guidance": "The next retry must reference at least one enrichment field by name."
+    },
+    "timestamp": "2026-07-11T11:09:55.806Z"
+  },
+  {
+    "label": "CEDAR-EDGE-02 prior_denial_count increments across retries",
+    "ok": true,
+    "detail": {
+      "result": "DENY",
+      "deny_code": "CEDAR_DENY_forbid-1",
+      "deny_reason": "Cedar policy forbid-1 forbids atp:booking:confirm",
+      "idp_ref": "e84ef609-cfd4-4020-ada5-23cb50939e57",
+      "enrichment": {},
+      "aep_iteration": 1,
+      "prior_denial_count": 2,
+      "what_changed_guidance": "The next retry must reference at least one enrichment field by name."
+    },
+    "timestamp": "2026-07-11T11:09:55.807Z"
+  },
+  {
+    "label": "STALL-HP-01 STALL_DENY_THRESHOLD reached -> STALLED",
+    "ok": true,
+    "detail": {
+      "state": "PLAN_B_ACTIVE",
+      "last": {
+        "result": "STALLED",
+        "stall_reason": "STALL_DENY_THRESHOLD",
+        "aep_iteration": 1
+      }
+    },
+    "timestamp": "2026-07-11T11:09:55.814Z"
+  },
+  {
+    "label": "STALL-HP-02 auto_activate_plan_b -> PLAN_B_ACTIVE with operative_goal_state = plan_b_target_state",
+    "ok": true,
+    "detail": {
+      "state": "PLAN_B_ACTIVE",
+      "operative_goal_state": "PRE_ACTIVITY"
+    },
+    "timestamp": "2026-07-11T11:09:55.814Z"
+  },
+  {
+    "label": "PLANB-EDGE-01 IDP without plan_b_ref rejected in PLAN_B_ACTIVE",
+    "ok": true,
+    "detail": {
+      "result": "DENY",
+      "deny_code": "IDP_PLAN_B_REF_REQUIRED",
+      "deny_reason": "session_state PLAN_B_ACTIVE requires plan_b_ref",
+      "idp_ref": "ffed2bf7-b247-4545-8fa8-81eb6b3c46ef",
+      "enrichment": {},
+      "aep_iteration": 1,
+      "prior_denial_count": 1,
+      "what_changed_guidance": "The next retry must reference at least one enrichment field by name."
+    },
+    "timestamp": "2026-07-11T11:09:55.818Z"
+  },
+  {
+    "label": "PLANB-HP-01 PLAN_B_ACTIVE ACT with plan_b_ref reaches Plan B outcome",
+    "ok": true,
+    "detail": {
+      "result": "PERMIT",
+      "new_state": "PRE_ACTIVITY",
+      "new_phase": "ACTIVE",
+      "event_stream_entry_id": "019f50de-a2ee-7b18-a932-ba8b7bd1361e",
+      "aep_iteration": 1
+    },
+    "timestamp": "2026-07-11T11:09:55.822Z"
+  },
+  {
+    "label": "CLOSE-HP-01 AEP_SESSION_CLOSED recorded with closure_reason",
+    "ok": true,
+    "detail": {
+      "ale_type": "AEP_SESSION_CLOSED",
+      "session_id": "256f4d38-5251-4d1e-9d45-ad41ebffed21",
+      "actor_id": "GEC",
+      "timestamp": "2026-07-11T11:09:55.824Z",
+      "causal_parent_id": null,
+      "goal_session_id": "f4ba5cb7-ab00-407e-bdb8-af7cc96db901",
+      "total_iterations": 2,
+      "final_state": "CONFIRMED",
+      "goal_achieved": true,
+      "closure_reason": "GOAL_ACHIEVED",
+      "session_xpid": "91944c6b-7070-5d64-af93-105c85322c6f",
+      "eod_id": "e4c4aa51-fcd2-42cb-823d-04cdcfa4548e",
+      "plan_b_activated": false,
+      "prev_span_hash": "802484e002247813ad32f641f49115e055410a55c24e3616a87806526d884b1c",
+      "own_span_hash": "51f7286bd27c7dc1f87b73a424c3295ebd1b83c5c65de8c487e971a05325d35a"
+    },
+    "timestamp": "2026-07-11T11:09:55.824Z"
+  },
+  {
+    "label": "OTEL-HP-01 cp_hash computed deterministically for identical Context Package content",
+    "ok": true,
+    "detail": {
+      "cp_hash": "1c09144ceb8204f725f456492030d0db36b98153e87bc12901e9b93e2f4a597b",
+      "cp_id": "83c8fcd6-f334-4c31-b84e-d477854cac52"
+    },
+    "timestamp": "2026-07-11T11:09:55.825Z"
+  },
+  {
+    "label": "LOOP-EDGE-01 ACT without prior SENSE rejected",
+    "ok": true,
+    "detail": "ACT submitted with no prior SENSE delivery in this iteration",
+    "timestamp": "2026-07-11T11:09:55.826Z"
+  }
+]

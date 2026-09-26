@@ -1,0 +1,22 @@
+{
+  "name": "soos-examples",
+  "version": "0.1.0",
+  "description": "SOOS Reference Implementation — Early Release (GAR, MJWT, KIA, CAP). See README.md for scope.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p .",
+    "demo:gar": "tsx tier1/gar/demo.ts",
+    "demo:mjwt": "tsx tier1/mjwt/demo.ts",
+    "demo:kia": "tsc -p . && node dist/tier1_5/kia/demo.js"
+  },
+  "dependencies": {
+    "tweetnacl": "^1.0.3",
+    "jose": "PIN_VERSION_BEFORE_PUBLISHING",
+    "uuid": "PIN_VERSION_BEFORE_PUBLISHING"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "@types/node": "^20.14.0",
+    "tsx": "PIN_VERSION_BEFORE_PUBLISHING"
+  }
+}

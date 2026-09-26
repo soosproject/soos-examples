@@ -1,0 +1,10 @@
+{
+  "scenario": "GECMediator.transition() called with newPhase = 'SUSPENDED' (not a member of SOPhase) via an 'as any' cast, simulating untyped external input such as deserialized JSON",
+  "expected": "Undefined — TypeScript enum safety does not exist at runtime for external data",
+  "actual": {
+    "accepted": true,
+    "resulting_current_phase": "SUSPENDED"
+  },
+  "classification": "Type II — gap (relates directly to SDB-01)",
+  "note": "transition() performs no runtime validation that newPhase is one of the five defined SOPhase values — it trusts the type system, which offers zero protection against data arriving from outside the TypeScript boundary (e.g. a real deployment reading phase transitions off a wire format). This directly resurfaces SDB-01: since 'SUSPENDED' isn't a defined phase, this both confirms the runtime has no guard rail against invalid phases in general AND confirms the current implementation cannot yet reject a phase like 'SUSPENDED' even if SDB-01 is eventually resolved to say phase-level SUSPENDED is invalid — a runtime validation set of allowed phases would be needed either way. Non-blocking for Step 2 Done Criteria; recommend adding a runtime SOPhase allow-list check once SDB-01 is resolved so this can be enforced meaningfully."
+}

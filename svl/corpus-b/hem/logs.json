@@ -1,0 +1,330 @@
+[
+  {
+    "id": "HP-HEM-01",
+    "kind": "happy",
+    "scenario": "HEM-PRE-1 fires on low confidence + consequential decision, ALE-030 emitted",
+    "conformance_refs": [
+      "§7.2.1"
+    ],
+    "outcome": "PASS",
+    "detail": "fires=true"
+  },
+  {
+    "id": "EDGE-HEM-01",
+    "kind": "edge",
+    "scenario": "CONF-HEM-PRE1-01: resubmission with identical goal_description after DENY blocked",
+    "conformance_refs": [
+      "CONF-HEM-PRE1-01"
+    ],
+    "outcome": "DENY",
+    "deny_code": "HEM_DECISION_INVALID",
+    "detail": "CONF-HEM-PRE1-01: resubmission after DENY requires a materially distinct goal_description; hash unchanged"
+  },
+  {
+    "id": "HP-HEM-02",
+    "kind": "happy",
+    "scenario": "HEM-PRE-2 fires for irreversible action, ALE-032 emitted (this is the plan's flagged minimum scenario)",
+    "conformance_refs": [
+      "§7.2.2",
+      "CONF-HEM-PRE2-01"
+    ],
+    "outcome": "PASS",
+    "detail": "fires=true"
+  },
+  {
+    "id": "EDGE-HEM-02",
+    "kind": "edge",
+    "scenario": "Irreversible action attempted without completed HEM-PRE-2 lifecycle — blocked",
+    "conformance_refs": [
+      "CONF-HEM-PRE2-01"
+    ],
+    "outcome": "DENY",
+    "deny_code": "HEM_DECISION_INVALID",
+    "detail": "CONF-HEM-PRE2-01: irreversible action requires completed HEM-PRE-2 lifecycle"
+  },
+  {
+    "id": "HP-HEM-03",
+    "kind": "happy",
+    "scenario": "HEM-DS-1 options presentation passes neutrality checks",
+    "conformance_refs": [
+      "§7.3.1",
+      "CONF-HEM-DS1-01/02/03"
+    ],
+    "outcome": "PASS",
+    "detail": "2 options, alphabetical, no evaluative language, 0 recommended"
+  },
+  {
+    "id": "EDGE-HEM-03",
+    "kind": "edge",
+    "scenario": "HEM-DS-1 biased consequence_summary rejected",
+    "conformance_refs": [
+      "CONF-HEM-DS1-02",
+      "§18.10"
+    ],
+    "outcome": "DENY",
+    "deny_code": "HEM_DECISION_INVALID",
+    "detail": "CONF-HEM-DS1-02: consequence_summary for a contains evaluative/urgency language: \"Unfortunately, this will delete the booking record.\""
+  },
+  {
+    "id": "HP-HEM-04",
+    "kind": "happy",
+    "scenario": "HEM-DS-2 fires after prompt_interval_seconds elapsed with no activity",
+    "conformance_refs": [
+      "§7.3.2"
+    ],
+    "outcome": "PASS",
+    "detail": "fires=true"
+  },
+  {
+    "id": "EDGE-HEM-04",
+    "kind": "edge",
+    "scenario": "CONF-HEM-DS2-01: 4th HEM-DS-2 prompt — timeout treated as exhausted instead",
+    "conformance_refs": [
+      "CONF-HEM-DS2-01",
+      "§14.3"
+    ],
+    "outcome": "DENY",
+    "deny_code": "HEM_TIMEOUT_DENY",
+    "detail": "promptsExhausted=true"
+  },
+  {
+    "id": "HP-HEM-05",
+    "kind": "happy",
+    "scenario": "HEM-LIM-1 fires on OUT_OF_DISTRIBUTION; CONF-HEM-LIM1-01 dedupes same limitation_type within session",
+    "conformance_refs": [
+      "§7.4.1",
+      "CONF-HEM-LIM1-01"
+    ],
+    "outcome": "PASS",
+    "detail": "fires=true, first.isNew=true, second.isNew=false"
+  },
+  {
+    "id": "EDGE-HEM-05",
+    "kind": "edge",
+    "scenario": "Agent proceeds OUT_OF_DISTRIBUTION without acknowledged HEM-LIM-1 — blocked",
+    "conformance_refs": [
+      "CONF-HEM-LIM1-02",
+      "INV-HEM-01(c)"
+    ],
+    "outcome": "DENY",
+    "deny_code": "HEM_DECISION_INVALID",
+    "detail": "CONF-HEM-LIM1-02: OUT_OF_DISTRIBUTION task requires acknowledged HEM-LIM-1 lifecycle"
+  },
+  {
+    "id": "HP-HEM-06",
+    "kind": "happy",
+    "scenario": "HEM-DIV-1 fires on PLAN_B_ACTIVE, Deliberation Record built, chain validates against Event Log, ALE-038 emitted",
+    "conformance_refs": [
+      "§7.4.2",
+      "CONF-HEM-SEC-DIV-01"
+    ],
+    "outcome": "PASS",
+    "detail": "chain_valid=true"
+  },
+  {
+    "id": "EDGE-HEM-06",
+    "kind": "edge",
+    "scenario": "§18.14 Divergence Protocol Gaming: prior_idp_chain references an idp_id never in the Event Log",
+    "conformance_refs": [
+      "CONF-HEM-SEC-DIV-01"
+    ],
+    "outcome": "DENY",
+    "deny_code": "HEM_DELIBERATION_CHAIN_MISMATCH",
+    "detail": "mismatchedIds=[\"idp-999-never-happened\"]"
+  },
+  {
+    "id": "EDGE-HEM-07",
+    "kind": "edge",
+    "scenario": "UNDECLARED_PLAN_B correctly flagged",
+    "conformance_refs": [
+      "CONF-HEM-SEC-DIV-03"
+    ],
+    "outcome": "DENY",
+    "deny_code": "HEM_DELIBERATION_CHAIN_MISMATCH",
+    "detail": "CONF-HEM-SEC-DIV-03: UNDECLARED_PLAN_B — PLAN_B path was not declared before the current session"
+  },
+  {
+    "id": "HP-HEM-07",
+    "kind": "happy",
+    "scenario": "HEM-HIGH-1: MEDICAL classified Category A (non-operator-configurable)",
+    "conformance_refs": [
+      "§7.5.1"
+    ],
+    "outcome": "PASS",
+    "detail": "category=CATEGORY_A"
+  },
+  {
+    "id": "EDGE-HEM-08",
+    "kind": "edge",
+    "scenario": "HEM-HIGH-1 Category A APPROVE without DRR — rejected",
+    "conformance_refs": [
+      "§12.7",
+      "HEM_DRR_REQUIRED"
+    ],
+    "outcome": "DENY",
+    "deny_code": "HEM_DRR_REQUIRED",
+    "detail": "HEM-HIGH-1 Category A: DRR required for APPROVE / APPROVE_WITH_CONSTRAINTS"
+  },
+  {
+    "id": "EDGE-HEM-09",
+    "kind": "edge",
+    "scenario": "APPROVE_WITH_PAYMENT correctly rejected for HEM-HIGH-1",
+    "conformance_refs": [
+      "CONF-HEM-HIGH1-02"
+    ],
+    "outcome": "DENY",
+    "deny_code": "HEM_DECISION_INVALID",
+    "detail": "CONF-HEM-HIGH1-02: APPROVE_WITH_PAYMENT is not valid for HEM-HIGH-1"
+  },
+  {
+    "id": "HP-HEM-08",
+    "kind": "happy",
+    "scenario": "HEM-FAT-1: HRS=0.26 (below HRS_FATIGUE_FLOOR=0.40, per the plan's flagged minimum scenario) + secondary signals present, 1800s rest, ALE-034 fatigue_flag=true",
+    "conformance_refs": [
+      "§7.5.2",
+      "CONF-HEM-HRS-04"
+    ],
+    "outcome": "PASS",
+    "detail": "hrs=0.257, secondary_signals=[\"LATENCY_DROP_60PCT\",\"THREE_FAST_APPROVALS\",\"DRR_RATIO_BELOW_10PCT\"], fires=true"
+  },
+  {
+    "id": "EDGE-HEM-10",
+    "kind": "edge",
+    "scenario": "Low HRS (session-duration driven) but zero secondary signals present — HEM-FAT-1 MUST NOT fire per §7.5.2's conjunctive (AND) condition",
+    "conformance_refs": [
+      "§7.5.2"
+    ],
+    "outcome": "PASS",
+    "detail": "hrs=0.742, secondary_signals=[], fires=false (expected false)"
+  },
+  {
+    "id": "EDGE-HEM-11",
+    "kind": "edge",
+    "scenario": "HRS_WEIGHT_CONFIGURATION_ERROR correctly rejected",
+    "conformance_refs": [
+      "CONF-HEM-HRS-01"
+    ],
+    "outcome": "DENY",
+    "deny_code": "HEM_WEIGHT_CONFIG_ERROR",
+    "detail": "HRS_WEIGHT_CONFIGURATION_ERROR: weights sum to 1.5, MUST equal 1.0"
+  },
+  {
+    "id": "EDGE-HEM-12",
+    "kind": "edge",
+    "scenario": "§18.13: >40% of driving escalations from one session in 15min window — FATIGUE_ATTACK_SUSPECTED instead of enforcing rest",
+    "conformance_refs": [
+      "CONF-HEM-SEC-FAT-01"
+    ],
+    "outcome": "DENY",
+    "deny_code": "HEM_FATIGUE_BLOCKED",
+    "detail": "suspected=true"
+  },
+  {
+    "id": "EDGE-HEM-13",
+    "kind": "edge",
+    "scenario": "Single-principal chain with HEM-FAT-1 enabled correctly flagged non-conforming",
+    "conformance_refs": [
+      "CONF-HEM-SEC-FAT-02"
+    ],
+    "outcome": "DENY",
+    "deny_code": "HEM_DECISION_INVALID",
+    "detail": "CONF-HEM-SEC-FAT-02: designation chain requires a secondary principal when HEM-FAT-1 is enabled"
+  },
+  {
+    "id": "HP-HEM-09",
+    "kind": "happy",
+    "scenario": "HEM-EMO-1 fires (advisory only, no HEM_PENDING) — ALE-036 advisory_type=EMOTIONAL",
+    "conformance_refs": [
+      "§7.6.1"
+    ],
+    "outcome": "PASS",
+    "detail": "fires=true"
+  },
+  {
+    "id": "HP-HEM-10",
+    "kind": "happy",
+    "scenario": "HEM-CONSENT fires (no consent_scope), APPI_ART17 basis, ALE-040 ale_subtype=CONSENT_INIT — matches plan's flagged minimum scenario",
+    "conformance_refs": [
+      "§7.6.2"
+    ],
+    "outcome": "PASS",
+    "detail": "fires=true"
+  },
+  {
+    "id": "EDGE-HEM-14",
+    "kind": "edge",
+    "scenario": "CONF-HEM-CONSENT-01: consent escalation times out — fail-closed TIMEOUT_DENY, never implicit consent",
+    "conformance_refs": [
+      "CONF-HEM-CONSENT-01"
+    ],
+    "outcome": "DENY",
+    "deny_code": "HEM_TIMEOUT_DENY",
+    "detail": "{\"resolution_type\":\"TIMEOUT_DENY\",\"consent_basis\":null}"
+  },
+  {
+    "id": "EDGE-HEM-15",
+    "kind": "edge",
+    "scenario": "DENY correctly scoped to HEM-PRE-1/HEM-PRE-2 only, rejected elsewhere (SDB-HEM-02)",
+    "conformance_refs": [
+      "§12",
+      "SDB-HEM-02"
+    ],
+    "outcome": "DENY",
+    "deny_code": "HEM_DECISION_INVALID",
+    "detail": "DENY is only defined for HEM-PRE-1/HEM-PRE-2 (SDB-HEM-02); not valid for HEM-HIGH-1"
+  },
+  {
+    "id": "HP-HEM-11",
+    "kind": "happy",
+    "scenario": "§9.2: MANIPULATION detected with nothing pending — initiates new Class 1 event, no HEM decision can authorize it",
+    "conformance_refs": [
+      "§9.2(b)",
+      "§9.2(d)"
+    ],
+    "outcome": "PASS",
+    "detail": "{\"tier\":\"TIER_0A\",\"violation_class\":\"MANIPULATION\",\"detected_at\":\"2026-07-08T22:29:53.713Z\"}"
+  },
+  {
+    "id": "HP-HEM-12",
+    "kind": "happy",
+    "scenario": "§9.4(d): BIOMETRIC_SIGNAL_INFERENCE violation must also trigger HEM-CONSENT",
+    "conformance_refs": [
+      "§9.4(d)"
+    ],
+    "outcome": "PASS",
+    "detail": "{\"tier\":\"TIER_0A\",\"violation_class\":\"BIOMETRIC_SIGNAL_INFERENCE\",\"detected_at\":\"2026-07-08T22:29:53.713Z\"}"
+  },
+  {
+    "id": "EDGE-HEM-16",
+    "kind": "edge",
+    "scenario": "§18.10: agent-generated consequence_summary with evaluative framing substituted with kernel-generated neutral text (HEM_FRAMING_SUBSTITUTED)",
+    "conformance_refs": [
+      "CONF-HEM-SEC-MANIP-03"
+    ],
+    "outcome": "DENY",
+    "deny_code": "HEM_SUPPRESSION_DETECTED",
+    "detail": "{\"finalSummary\":\"This action will delete the booking record.\",\"substituted\":true}"
+  },
+  {
+    "id": "EDGE-HEM-17",
+    "kind": "edge",
+    "scenario": "§18.12: HEM trigger timing correlates with principal fast-response periods (HRS_GAMING_SUSPECTED)",
+    "conformance_refs": [
+      "CONF-HEM-SEC-HRS-02"
+    ],
+    "outcome": "DENY",
+    "deny_code": "HEM_DECISION_INVALID",
+    "detail": "gaming_suspected=true"
+  },
+  {
+    "id": "EDGE-HEM-18",
+    "kind": "edge",
+    "scenario": "INV-HEM-01(a) correctly caught missing required field",
+    "conformance_refs": [
+      "INV-HEM-01(a)"
+    ],
+    "outcome": "DENY",
+    "deny_code": "HEM_SUPPRESSION_DETECTED",
+    "detail": "INV-HEM-01(a): required field 'limitation_declaration' missing for interaction_class HEM-LIM-1"
+  }
+]

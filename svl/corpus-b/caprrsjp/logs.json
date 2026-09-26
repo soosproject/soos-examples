@@ -1,0 +1,120 @@
+[
+  {
+    "id": "HP-CAPRRSJP-01",
+    "kind": "happy",
+    "scenario": "Japan LRI Profile (https://laws.e-gov.go.jp/lri/v1) satisfies all five CAP-RRS §9.3 normative requirements",
+    "conformance_refs": [
+      "CAP-RRS-JP §3",
+      "CAP-RRS §9.3"
+    ],
+    "outcome": "PASS",
+    "detail": "complete"
+  },
+  {
+    "id": "HP-CAPRRSJP-02",
+    "kind": "happy",
+    "scenario": "APPI law_id \"325AC0000000089\" validates as a 15-char e-LAWS 法令ID",
+    "conformance_refs": [
+      "§4.1"
+    ],
+    "outcome": "PASS",
+    "detail": "325AC0000000089"
+  },
+  {
+    "id": "EDGE-CAPRRSJP-01",
+    "kind": "edge",
+    "scenario": "Malformed law_id correctly rejected",
+    "conformance_refs": [
+      "§4.1"
+    ],
+    "outcome": "DENY",
+    "deny_code": "LRI_REQUIREMENT_VIOLATION",
+    "detail": "§4.1: law_id \"not-a-real-id\" is not a valid 15-character e-LAWS 法令ID"
+  },
+  {
+    "id": "HP-CAPRRSJP-03",
+    "kind": "happy",
+    "scenario": "Article 17 XPath built with Arabic numerals: /Law/LawBody/MainProvision/Chapter[@Num='4']/Article[@Num='17']/Paragraph[@Num='1']",
+    "conformance_refs": [
+      "§4.2"
+    ],
+    "outcome": "PASS",
+    "detail": "/Law/LawBody/MainProvision/Chapter[@Num='4']/Article[@Num='17']/Paragraph[@Num='1']"
+  },
+  {
+    "id": "EDGE-CAPRRSJP-02",
+    "kind": "edge",
+    "scenario": "Japanese-numeral XPath correctly rejected — @Num MUST use Arabic numerals",
+    "conformance_refs": [
+      "§4.2 Critical constraint"
+    ],
+    "outcome": "DENY",
+    "deny_code": "LRI_REQUIREMENT_VIOLATION",
+    "detail": "§4.2: article_ref \"/Law/LawBody/MainProvision/Article[@Num='十七']\" uses Japanese numeral form — @Num attributes MUST use Arabic numerals, this XPath will match nothing"
+  },
+  {
+    "id": "HP-CAPRRSJP-04",
+    "kind": "happy",
+    "scenario": "amendment_detection_endpoint and interpretation_endpoint URLs built per §4.4/§4.5",
+    "conformance_refs": [
+      "§4.4",
+      "§4.5"
+    ],
+    "outcome": "PASS",
+    "detail": "{\"amendUrl\":\"https://laws.e-gov.go.jp/api/2/updatelawlists/2022-04-01\",\"interpUrl\":\"https://clawed.soosproject.com/jp/interpretations/325AC0000000089/_Law_LawBody_MainProvision_Chapter@Num=4_Article@Num=17_Paragraph@Num=1\"}"
+  },
+  {
+    "id": "HP-CAPRRSJP-05",
+    "kind": "happy",
+    "scenario": "APPI (Act/法律) with statute_clear basis — standard endorser is 内閣法制局 per Table 1",
+    "conformance_refs": [
+      "§5.1"
+    ],
+    "outcome": "PASS",
+    "detail": "{\"authorityId\":\"https://www.clb.go.jp/authority\",\"label\":\"内閣法制局\",\"reason\":\"§5.1 Table 1: standard LawType-based endorser for Act\"}"
+  },
+  {
+    "id": "EDGE-CAPRRSJP-03",
+    "kind": "edge",
+    "scenario": "Appendix B.1: 災害対策基本法 §49の11②③ internal contradiction (名簿 sharing vs. consent confirmation) — Ministerial LawType would normally route to 所管省庁, but internal_conflict_resolution unconditionally elevates to 内閣法制局",
+    "conformance_refs": [
+      "§5.2",
+      "Appendix B.1 (OQ-BOSAI-001)"
+    ],
+    "outcome": "DENY",
+    "deny_code": "LRI_REQUIREMENT_VIOLATION",
+    "detail": "elevated_to=内閣法制局, reason=§5.2: internal_conflict_resolution always requires 内閣法制局 endorsement, overriding the standard LawType-based endorser regardless of LawType"
+  },
+  {
+    "id": "HP-CAPRRSJP-06",
+    "kind": "happy",
+    "scenario": "Appendix B.2: 防災庁 勧告権 + 都道府県知事 evacuation authority dual-command coordination — both co-endorsers present, quorum 'all' met",
+    "conformance_refs": [
+      "§5.3",
+      "Appendix B.2 (OQ-BOSAI-002)"
+    ],
+    "outcome": "PASS",
+    "detail": "quorum met"
+  },
+  {
+    "id": "EDGE-CAPRRSJP-04",
+    "kind": "edge",
+    "scenario": "Japan profile correctly requires quorum 'all' for cross_statute_coordination, stricter than the generic default",
+    "conformance_refs": [
+      "§5.3"
+    ],
+    "outcome": "DENY",
+    "deny_code": "LRI_REQUIREMENT_VIOLATION",
+    "detail": "§5.3: co_endorsement_quorum MUST be \"all\" for cross_statute_coordination in Japan deployments"
+  },
+  {
+    "id": "HP-CAPRRSJP-07",
+    "kind": "happy",
+    "scenario": "APPI Article 17 worked example built as a real AuthoritySource, reusing CAP-RRS's type directly (no JP-specific type duplication)",
+    "conformance_refs": [
+      "§6.2"
+    ],
+    "outcome": "PASS",
+    "detail": "{\"authority_id\":\"https://www.clb.go.jp/authority\",\"endorsed_at\":\"2026-07-10T03:17:40.417Z\",\"endorsement_scope\":\"prohibition_predicate_only\",\"resolution_basis\":\"statute_clear\",\"co_endorsement_required\":false,\"co_endorsement_quorum\":\"primary_only\",\"co_endorsers\":[],\"endorsement_claim\":\"<signed JWT>\"}"
+  }
+]

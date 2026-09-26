@@ -1,0 +1,548 @@
+[
+  {
+    "id": "IDP-HP-001",
+    "scenario": "intake_endorsement — simple booking, no plan_b",
+    "spec_ref": "§4.6.1-4.6.2",
+    "input": {
+      "eod": {
+        "eod_id": "8cf45c5a-a2fe-4042-820b-db694bffbd4a",
+        "primary_outcome": {
+          "target_state": "CONFIRMED"
+        }
+      },
+      "mandate_jwt_jti": "mandate-hp-01",
+      "so_id": "so-hp-01",
+      "so_type_id": "atp/booking-object/1.0",
+      "principal_credential": "kia:principal-001",
+      "requested_at": "2026-07-08T07:53:51.296Z",
+      "request_id": "f245e98b-deca-4225-9dd1-061f4f980a62"
+    },
+    "outcome": {
+      "ok": true,
+      "endorsed_eod": {
+        "endorsed_eod_id": "75408472-381e-4b3d-b0d7-43a96d743c7b",
+        "eod_id": "8cf45c5a-a2fe-4042-820b-db694bffbd4a",
+        "eod_hash": "sha256-stub:96:7852",
+        "mandate_jwt_id": "mandate-hp-01",
+        "so_id_bound": "so-hp-01",
+        "primary_outcome_validated": true,
+        "plan_b_validated": true,
+        "scope_status": "IN_SCOPE",
+        "endorsed_at": "2026-07-08T07:53:51.296Z",
+        "gec_signature": "ed25519-stub-sig:sha256-stub:337:26948",
+        "revoked": false
+      }
+    }
+  },
+  {
+    "id": "IDP-HP-002",
+    "scenario": "intake_endorsement — with plan_b, both validated",
+    "spec_ref": "§4.6.2 plan_b_validated",
+    "input": {
+      "eod": {
+        "eod_id": "007bc9e0-d332-4a7e-8931-bf8d5a4e623a",
+        "primary_outcome": {
+          "target_state": "CONFIRMED"
+        },
+        "plan_b": {
+          "plan_b_id": "pb-hp-02",
+          "plan_b_target_state": "PRE_ACTIVITY"
+        }
+      },
+      "mandate_jwt_jti": "mandate-hp-02",
+      "so_id": "so-hp-02",
+      "so_type_id": "atp/booking-object/1.0",
+      "principal_credential": "kia:principal-002",
+      "requested_at": "2026-07-08T07:53:51.297Z",
+      "request_id": "bd61f48c-3a96-40f4-9b54-70d25cf169a5"
+    },
+    "outcome": {
+      "ok": true,
+      "endorsed_eod": {
+        "endorsed_eod_id": "72e14674-954a-435f-a254-2bc18e8811ff",
+        "eod_id": "007bc9e0-d332-4a7e-8931-bf8d5a4e623a",
+        "eod_hash": "sha256-stub:167:13615",
+        "mandate_jwt_id": "mandate-hp-02",
+        "so_id_bound": "so-hp-02",
+        "primary_outcome_validated": true,
+        "plan_b_validated": true,
+        "scope_status": "IN_SCOPE",
+        "endorsed_at": "2026-07-08T07:53:51.297Z",
+        "gec_signature": "ed25519-stub-sig:sha256-stub:339:26853",
+        "revoked": false
+      }
+    }
+  },
+  {
+    "id": "IDP-HP-003",
+    "scenario": "intake_endorsement — idempotent duplicate request_id returns same Endorsed EOD",
+    "spec_ref": "§4.6.3 INTAKE_DUPLICATE",
+    "input": {
+      "eod": {
+        "eod_id": "37dc854b-da4f-4681-b9c0-34a6afc2fb64",
+        "primary_outcome": {
+          "target_state": "CONFIRMED"
+        }
+      },
+      "mandate_jwt_jti": "mandate-hp-03",
+      "so_id": "so-hp-03",
+      "so_type_id": "atp/booking-object/1.0",
+      "principal_credential": "kia:principal-003",
+      "requested_at": "2026-07-08T07:53:51.297Z",
+      "request_id": "7d0d3ef1-ad00-4ab7-af60-2dcaaed8f61a"
+    },
+    "outcome": {
+      "first": "27dc691e-fd83-4e6c-a57b-176b9973e6fc",
+      "second": "27dc691e-fd83-4e6c-a57b-176b9973e6fc",
+      "same": true
+    }
+  },
+  {
+    "id": "IDP-HP-004",
+    "scenario": "intake_endorsement — CLASS_2 agent EOD (endorsement itself is class-agnostic)",
+    "spec_ref": "§4.6",
+    "input": {
+      "eod": {
+        "eod_id": "10c44ec7-5ef9-4b50-b7c3-8c7454b91ed3",
+        "primary_outcome": {
+          "target_state": "CONFIRMED"
+        }
+      },
+      "mandate_jwt_jti": "mandate-hp-04",
+      "so_id": "so-hp-04",
+      "so_type_id": "atp/booking-object/1.0",
+      "principal_credential": "kia:principal-004",
+      "requested_at": "2026-07-08T07:53:51.297Z",
+      "request_id": "7efc25fe-7e5e-498a-bd59-cca9b83f835a"
+    },
+    "outcome": {
+      "ok": true,
+      "endorsed_eod": {
+        "endorsed_eod_id": "383278c9-99a6-4fa6-b942-a5b75e0b07b9",
+        "eod_id": "10c44ec7-5ef9-4b50-b7c3-8c7454b91ed3",
+        "eod_hash": "sha256-stub:96:7672",
+        "mandate_jwt_id": "mandate-hp-04",
+        "so_id_bound": "so-hp-04",
+        "primary_outcome_validated": true,
+        "plan_b_validated": true,
+        "scope_status": "IN_SCOPE",
+        "endorsed_at": "2026-07-08T07:53:51.297Z",
+        "gec_signature": "ed25519-stub-sig:sha256-stub:337:26837",
+        "revoked": false
+      }
+    }
+  },
+  {
+    "id": "IDP-HP-005",
+    "scenario": "Class 3 IDP with endorsed_eod_id -> validation PERMIT, has_endorsed_eod=true",
+    "spec_ref": "§4.2 endorsed_eod_id, §5.4",
+    "input": {
+      "idp_id": "94bd623c-9655-4d2e-bd3a-51581359c413",
+      "step_sequence": 1,
+      "requested_action": "atp:booking:confirm",
+      "declared_goal": {
+        "goal_id": "b43bd5b4-bacc-423c-b6e3-722a343a1ca6",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.297Z",
+      "session_id": "s-hp-05",
+      "so_id": "so-hp-05",
+      "mandate_id": "mandate-hp-05",
+      "endorsed_eod_id": "397ae3a5-161c-4530-bf47-9bb17769151d"
+    },
+    "outcome": {
+      "ok": true,
+      "cedarContext": {
+        "idp.reasoning_basis.type": "RULE_BASED",
+        "idp.confidence_level": 0.8,
+        "idp.hem_urgency": "NONE",
+        "idp.reasoning_mode": "ROUTINE",
+        "idp.prior_denial_count": 0,
+        "idp.has_endorsed_eod": true,
+        "idp.eod_scope_status": "IN_SCOPE",
+        "idp.plan_b_active": false,
+        "idp.miscalibration_score": 0
+      }
+    }
+  },
+  {
+    "id": "IDP-HP-006",
+    "scenario": "Class 2 IDP without endorsed_eod_id -> accepted with EOD_ABSENT warning (not rejected)",
+    "spec_ref": "§4.2 \"Class 2 ... GEC MUST log EOD_ABSENT\"",
+    "input": {
+      "idp_id": "652bc9b1-be4c-449a-8e59-cb16ee0f152c",
+      "step_sequence": 1,
+      "requested_action": "atp:booking:confirm",
+      "declared_goal": {
+        "goal_id": "f6454055-6c72-48ec-a882-ce4f98ab2a5f",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.297Z",
+      "session_id": "s-hp-06",
+      "so_id": "so-hp-06",
+      "mandate_id": "mandate-hp-06"
+    },
+    "outcome": {
+      "ok": true,
+      "warnings": [
+        "EOD_ABSENT"
+      ],
+      "cedarContext": {
+        "idp.reasoning_basis.type": "RULE_BASED",
+        "idp.confidence_level": 0.8,
+        "idp.hem_urgency": "NONE",
+        "idp.reasoning_mode": "ROUTINE",
+        "idp.prior_denial_count": 0,
+        "idp.has_endorsed_eod": false,
+        "idp.plan_b_active": false,
+        "idp.miscalibration_score": 0
+      }
+    }
+  },
+  {
+    "id": "IDP-HP-007",
+    "scenario": "IDP with valid mandate_reference -> SPO structural validation passes, mandate_reference_valid=true",
+    "spec_ref": "§4.2 mandate_reference (a)-(c)",
+    "input": {
+      "idp_id": "f251dd69-4405-455a-a087-668fabba81b4",
+      "step_sequence": 1,
+      "requested_action": "atp:booking:confirm",
+      "declared_goal": {
+        "goal_id": "b5977413-856e-4263-b168-b35b0e231bad",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.297Z",
+      "session_id": "s-hp-07",
+      "so_id": "so-hp-07",
+      "mandate_id": "mandate-hp-07",
+      "mandate_reference": "spo://myauberge/atp-booking-standard/1.0"
+    },
+    "outcome": {
+      "ok": true,
+      "cedarContext": {
+        "idp.reasoning_basis.type": "RULE_BASED",
+        "idp.confidence_level": 0.8,
+        "idp.hem_urgency": "NONE",
+        "idp.reasoning_mode": "ROUTINE",
+        "idp.prior_denial_count": 0,
+        "idp.has_endorsed_eod": false,
+        "idp.plan_b_active": false,
+        "idp.mandate_reference_valid": true,
+        "idp.miscalibration_score": 0
+      }
+    }
+  },
+  {
+    "id": "IDP-HP-008",
+    "scenario": "Multiple sequential IDPs, step_sequence strictly increasing, all PERMIT",
+    "spec_ref": "§4.2 step_sequence monotonicity",
+    "input": {
+      "session": "s-hp-08"
+    },
+    "outcome": {
+      "steps": [
+        {
+          "step_sequence": 1,
+          "ok": true
+        },
+        {
+          "step_sequence": 2,
+          "ok": true
+        },
+        {
+          "step_sequence": 3,
+          "ok": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "IDP-HP-009",
+    "scenario": "RETRY_CONTINUATION description references enrichment field by name -> no warnings",
+    "spec_ref": "§4.3 RETRY_CONTINUATION, §6.2 what_changed_guidance",
+    "input": {
+      "deny_what_changed_guidance": "The next retry must change reasoning_basis.description to reference enrichment.confidence_level_required: 0.95.",
+      "retry": {
+        "idp_id": "aba7e7a1-61c0-4b7e-8fdf-209e5ef8fee9",
+        "step_sequence": 2,
+        "requested_action": "atp:booking:suspend",
+        "declared_goal": {
+          "goal_id": "95cc2e7d-dc45-4ea8-89c1-47c489aef577",
+          "description": "Corpus scenario goal"
+        },
+        "reasoning_basis": {
+          "type": "RETRY_CONTINUATION",
+          "description": "Prior cancel denied. Raising confidence per enrichment.confidence_level_required (0.95) and switching action."
+        },
+        "confidence_level": 0.96,
+        "hem_urgency": "NONE",
+        "timestamp": "2026-07-08T07:53:51.298Z",
+        "session_id": "s-hp-09",
+        "so_id": "so-hp-09",
+        "mandate_id": "mandate-hp-09",
+        "context_refs": [
+          "6aa87f19-f105-44c0-a1d6-14b5092089fc"
+        ]
+      }
+    },
+    "outcome": {
+      "ok": true,
+      "cedarContext": {
+        "idp.reasoning_basis.type": "RETRY_CONTINUATION",
+        "idp.confidence_level": 0.96,
+        "idp.hem_urgency": "NONE",
+        "idp.reasoning_mode": "ROUTINE",
+        "idp.prior_denial_count": 0,
+        "idp.has_endorsed_eod": false,
+        "idp.plan_b_active": false,
+        "idp.miscalibration_score": 0
+      }
+    }
+  },
+  {
+    "id": "IDP-HP-010",
+    "scenario": "RETRY_CONTINUATION context_refs correctly points to prior denied idp_id -> no RETRY_WITHOUT_PRIOR_REF",
+    "spec_ref": "§5.2(l)",
+    "input": {
+      "context_refs": [
+        "6aa87f19-f105-44c0-a1d6-14b5092089fc"
+      ]
+    },
+    "outcome": {
+      "warnings": []
+    }
+  },
+  {
+    "id": "IDP-HP-011",
+    "scenario": "RETRY_CONTINUATION following DENY leads to PERMIT on second attempt",
+    "spec_ref": "§4.3, §5.6.1",
+    "input": {
+      "idp_id": "4119111d-bb6d-4613-ab73-07bce1d75ce3",
+      "step_sequence": 2,
+      "requested_action": "atp:booking:confirm",
+      "declared_goal": {
+        "goal_id": "cf964f0b-2541-43a5-8614-059bd24f90f7",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RETRY_CONTINUATION",
+        "description": "Raised confidence to satisfy enrichment.confidence_level_required."
+      },
+      "confidence_level": 0.92,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.298Z",
+      "session_id": "s-hp-11",
+      "so_id": "so-hp-11",
+      "mandate_id": "mandate-hp-11",
+      "context_refs": [
+        "a7a49b2d-1a32-4ff4-bf9b-6092bd7925b1"
+      ]
+    },
+    "outcome": {
+      "ok": true,
+      "cedarContext": {
+        "idp.reasoning_basis.type": "RETRY_CONTINUATION",
+        "idp.confidence_level": 0.92,
+        "idp.hem_urgency": "NONE",
+        "idp.reasoning_mode": "ROUTINE",
+        "idp.prior_denial_count": 0,
+        "idp.has_endorsed_eod": false,
+        "idp.plan_b_active": false,
+        "idp.miscalibration_score": 0
+      }
+    }
+  },
+  {
+    "id": "IDP-HP-012",
+    "scenario": "RETRY_CONTINUATION session full audit trail: IDP_SUBMITTED < CEDAR_DENY_RECORDED < ACTION_RESULT_RECORDED < IDP_SUBMITTED < STATE_TRANSITIONED",
+    "spec_ref": "§5.6.4",
+    "input": {},
+    "outcome": {
+      "events": [
+        "IDP_SUBMITTED",
+        "CEDAR_DENY_RECORDED",
+        "ACTION_RESULT_RECORDED",
+        "IDP_SUBMITTED",
+        "STATE_TRANSITIONED",
+        "ACTION_RESULT_RECORDED"
+      ]
+    }
+  },
+  {
+    "id": "IDP-HP-013",
+    "scenario": "PD-EOD derivation, in-scope target, high derivation_confidence",
+    "spec_ref": "§4.7.1-4.7.2",
+    "input": {
+      "source_prompt": "Confirm the booking once the payment clears."
+    },
+    "outcome": {
+      "derived": true,
+      "target_state": "CONFIRMED",
+      "warnings": []
+    }
+  },
+  {
+    "id": "IDP-HP-014",
+    "scenario": "PD-EOD derivation, in-scope target, low derivation_confidence (still IN_SCOPE — confidence and scope are independent)",
+    "spec_ref": "§4.7.1",
+    "input": {
+      "source_prompt": "Move it to in-journey status, I think."
+    },
+    "outcome": {
+      "derived": true,
+      "target_state": "IN_JOURNEY",
+      "derivation_confidence": 0.55
+    }
+  },
+  {
+    "id": "IDP-HP-015",
+    "scenario": "PD-EOD derivation, source_prompt near the 2000-char ceiling — accepted",
+    "spec_ref": "§4.7.1 source_prompt max 2000 chars",
+    "input": {
+      "prompt_length": 1680
+    },
+    "outcome": {
+      "derived": true
+    }
+  },
+  {
+    "id": "IDP-HP-016",
+    "scenario": "PLAN_B_ACTIVE session with plan_b_ref present -> accepted, idp.plan_b_active=true in Cedar context",
+    "spec_ref": "§4.2 plan_b_ref, §5.4",
+    "input": {
+      "idp_id": "97d2b223-d904-4294-8ee3-8332e9deca3f",
+      "step_sequence": 1,
+      "requested_action": "atp:booking:suspend",
+      "declared_goal": {
+        "goal_id": "b153d7cd-9326-42fa-8e30-6f3f6bb19f5a",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.298Z",
+      "session_id": "s-hp-16",
+      "so_id": "so-hp-16",
+      "mandate_id": "mandate-hp-16",
+      "plan_b_ref": "plan-b-hp-16"
+    },
+    "outcome": {
+      "ok": true,
+      "cedarContext": {
+        "idp.reasoning_basis.type": "RULE_BASED",
+        "idp.confidence_level": 0.8,
+        "idp.hem_urgency": "NONE",
+        "idp.reasoning_mode": "ROUTINE",
+        "idp.prior_denial_count": 0,
+        "idp.has_endorsed_eod": false,
+        "idp.plan_b_active": true,
+        "idp.miscalibration_score": 0
+      }
+    }
+  },
+  {
+    "id": "IDP-HP-017",
+    "scenario": "Full chain: intake_endorsement plan_b_validated=true -> PLAN_B_ACTIVE IDP referencing the same plan_b_id",
+    "spec_ref": "§4.6.2 plan_b_validated + §4.2 plan_b_ref",
+    "input": {
+      "endorsed_plan_b_validated": true
+    },
+    "outcome": {
+      "ok": true,
+      "cedarContext": {
+        "idp.reasoning_basis.type": "RULE_BASED",
+        "idp.confidence_level": 0.8,
+        "idp.hem_urgency": "NONE",
+        "idp.reasoning_mode": "ROUTINE",
+        "idp.prior_denial_count": 0,
+        "idp.has_endorsed_eod": true,
+        "idp.eod_scope_status": "IN_SCOPE",
+        "idp.plan_b_active": true,
+        "idp.miscalibration_score": 0
+      }
+    }
+  },
+  {
+    "id": "IDP-HP-018",
+    "scenario": "PLAN_B_ACTIVE transition committed — STATE_TRANSITIONED recorded with plan_b_ref context intact",
+    "spec_ref": "§5.6.1",
+    "input": {
+      "idp_id": "a0082c03-4b5a-4206-92c1-c8b5270328f7",
+      "step_sequence": 1,
+      "requested_action": "atp:booking:suspend",
+      "declared_goal": {
+        "goal_id": "a943f59a-6453-4326-9450-cb7055f49dd9",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.299Z",
+      "session_id": "s-hp-18",
+      "so_id": "so-hp-18",
+      "mandate_id": "mandate-hp-18",
+      "plan_b_ref": "plan-b-hp-18"
+    },
+    "outcome": {
+      "events": [
+        "IDP_SUBMITTED",
+        "STATE_TRANSITIONED",
+        "ACTION_RESULT_RECORDED"
+      ]
+    }
+  },
+  {
+    "id": "IDP-HP-019",
+    "scenario": "Calibration window reaches 10 IDPs with ratio 0.30 (below 0.40 threshold) -> no warning fires",
+    "spec_ref": "§7.2",
+    "input": {
+      "ratio": "3/10"
+    },
+    "outcome": {
+      "miscalibration_active": false
+    }
+  },
+  {
+    "id": "IDP-HP-020",
+    "scenario": "CONFIDENCE_MISCALIBRATION_WARNING trigger exactly at cycle 10, ratio 0.50 > 0.40 threshold",
+    "spec_ref": "§7.2, §5.4 idp.miscalibration_score",
+    "input": {
+      "ratio": "5/10"
+    },
+    "outcome": {
+      "warning_event": {
+        "agent_id": "mandate-hp-20",
+        "session_id": "s-hp-20",
+        "window_size": 10,
+        "high_conf_count": 10,
+        "deny_hem_count": 5,
+        "ratio": 0.5,
+        "threshold": 0.4
+      }
+    }
+  }
+]

@@ -1,0 +1,288 @@
+[
+  {
+    "label": "ACD-HP-01 successful handshake issues record + acd_session_id",
+    "ok": true,
+    "detail": {
+      "ok": true,
+      "session": "8b3274a5-a520-4b9e-bbad-c3ceea9fb780"
+    },
+    "timestamp": "2026-07-14T07:57:09.407Z"
+  },
+  {
+    "label": "ACD-HP-02 ALE-057 stores only record_hash, not full body",
+    "ok": true,
+    "detail": {
+      "ale_type": "ACD_RECORD_ISSUED",
+      "session_id": "ACD",
+      "actor_id": "GEC",
+      "timestamp": "2026-07-14T07:57:09.407Z",
+      "causal_parent_id": null,
+      "acd_session_id": "76a7ad42-6a1d-4ed1-85d0-287dfde817a8",
+      "record_hash": "07e824500a1d644440819be46717e3b7e6c3bf4733da6592f0bb2f27a92e81e9",
+      "acd_validity_not_after": "2026-07-15T07:57:09.407Z",
+      "mjwt_jti": "c1cefe4b-cf75-4a34-baa4-a4eee72db30a",
+      "prev_span_hash": "20b66a9cc0261e1e692630767093324320ad0fdb4d7a1122535097f9f455210a",
+      "own_span_hash": "4559cc3a4ecb397d2a08f040eeda8ffa6bd8d1521a1d06130dfe15d20873dfbb"
+    },
+    "timestamp": "2026-07-14T07:57:09.407Z"
+  },
+  {
+    "label": "ACD-EDGE-01 four-check failure: manifest not current/unrevoked",
+    "ok": true,
+    "detail": {
+      "error": "ACD_CHECK_FAILED",
+      "failed_check": 1,
+      "acd_session_id": "ae443144-2389-4180-8a57-f5dabf66a534",
+      "timestamp": "2026-07-14T07:57:09.407Z"
+    },
+    "timestamp": "2026-07-14T07:57:09.407Z"
+  },
+  {
+    "label": "ACD-EDGE-02 four-check failure: cedar policy hash stale",
+    "ok": true,
+    "detail": {
+      "error": "ACD_CHECK_FAILED",
+      "failed_check": 2,
+      "acd_session_id": "fe68bfb7-6db2-49a7-b04b-a6e24dc84619",
+      "timestamp": "2026-07-14T07:57:09.407Z"
+    },
+    "timestamp": "2026-07-14T07:57:09.407Z"
+  },
+  {
+    "label": "ACD-EDGE-03 four-check failure: KIA signing key revoked",
+    "ok": true,
+    "detail": {
+      "error": "ACD_CHECK_FAILED",
+      "failed_check": 3,
+      "acd_session_id": "187347d7-18c2-42e3-b36d-d441b0e4156e",
+      "timestamp": "2026-07-14T07:57:09.407Z"
+    },
+    "timestamp": "2026-07-14T07:57:09.407Z"
+  },
+  {
+    "label": "ACD-EDGE-04 four-check failure: agent XPID revoked/CAEP signaled",
+    "ok": true,
+    "detail": {
+      "error": "ACD_CHECK_FAILED",
+      "failed_check": 4,
+      "acd_session_id": "c73674ba-ce77-4fa5-a76b-ef0417f388f6",
+      "timestamp": "2026-07-14T07:57:09.407Z"
+    },
+    "timestamp": "2026-07-14T07:57:09.407Z"
+  },
+  {
+    "label": "ACD-HP-03 resource-provider-side validation passes",
+    "ok": true,
+    "detail": {
+      "ok": true
+    },
+    "timestamp": "2026-07-14T07:57:09.408Z"
+  },
+  {
+    "label": "ACD-EDGE-05 provider-side signature verification failure",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "failedStep": 1,
+      "reason": "gec_signature verification failed"
+    },
+    "timestamp": "2026-07-14T07:57:09.408Z"
+  },
+  {
+    "label": "ACD-EDGE-06 provider-side XPID mismatch",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "failedStep": 2,
+      "reason": "agent_xpid does not match queried kernel XPID"
+    },
+    "timestamp": "2026-07-14T07:57:09.408Z"
+  },
+  {
+    "label": "ACD-EDGE-07 provider-side jurisdiction not covered",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "failedStep": 4,
+      "reason": "jurisdictions does not cover provider jurisdiction DE"
+    },
+    "timestamp": "2026-07-14T07:57:09.409Z"
+  },
+  {
+    "label": "ACD-EDGE-08 expired acd_validity_not_after rejected",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "failedStep": 3,
+      "reason": "current time outside acd_validity window"
+    },
+    "timestamp": "2026-07-14T07:57:09.409Z"
+  },
+  {
+    "label": "ACD-HP-04 trust level derivation — STANDARD baseline",
+    "ok": true,
+    "detail": {
+      "level": "STANDARD"
+    },
+    "timestamp": "2026-07-14T07:57:09.409Z"
+  },
+  {
+    "label": "ACD-HP-05 trust level derivation — ELEVATED (FROST + TEE)",
+    "ok": true,
+    "detail": {
+      "level": "ELEVATED"
+    },
+    "timestamp": "2026-07-14T07:57:09.409Z"
+  },
+  {
+    "label": "ACD-EDGE-09 L2 without frost_threshold falls through to STANDARD (not ELEVATED)",
+    "ok": true,
+    "detail": {
+      "level": "STANDARD"
+    },
+    "timestamp": "2026-07-14T07:57:09.409Z"
+  },
+  {
+    "label": "ACD-HP-06 trust level derivation — GOVERNMENT (full chain)",
+    "ok": true,
+    "detail": {
+      "level": "GOVERNMENT"
+    },
+    "timestamp": "2026-07-14T07:57:09.409Z"
+  },
+  {
+    "label": "ACD-EDGE-10 L3 without hardware_attestation_chain falls through (not GOVERNMENT)",
+    "ok": true,
+    "detail": {
+      "level": "STANDARD"
+    },
+    "timestamp": "2026-07-14T07:57:09.409Z"
+  },
+  {
+    "label": "ACD-HP-07 Audit Principal access granted -> SESSION_LEVEL scope",
+    "ok": true,
+    "detail": {
+      "scope": "SESSION_LEVEL",
+      "granted_at": "2026-07-14T07:57:09.410Z",
+      "includes_ptd_access": false,
+      "includes_cap_profile_hash_verification": false,
+      "includes_merkle_proof_access": false
+    },
+    "timestamp": "2026-07-14T07:57:09.410Z"
+  },
+  {
+    "label": "ACD-EDGE-11 Audit Principal access denied -> null grant, still logged (ALE-061)",
+    "ok": true,
+    "detail": {
+      "grant": null,
+      "loggedEntry": {
+        "ale_type": "ACD_HUMAN_QUERY",
+        "session_id": "ACD",
+        "actor_id": "AUDIT_PRINCIPAL",
+        "timestamp": "2026-07-14T07:57:09.410Z",
+        "causal_parent_id": null,
+        "acd_session_id": "b4121bc3-4606-441d-a5e4-779c1f4dc802",
+        "principal_id": "unverified-01",
+        "principal_kind": "REGULATOR",
+        "credential_kind": "AUDIT_PRINCIPAL",
+        "granted": false,
+        "prev_span_hash": "94504a20325db97cf73525fd7fda611178f84f1a051377f91054ca85b2c9753b",
+        "own_span_hash": "34bcab2ae84acf9ccbba77942253e97e0ed25dbbe336aefd4b2917c3a890eb5a"
+      }
+    },
+    "timestamp": "2026-07-14T07:57:09.410Z"
+  },
+  {
+    "label": "ACD-HP-08 VEA access granted -> FULL_AUDIT_PACKAGE with PTD + Merkle proof access",
+    "ok": true,
+    "detail": {
+      "scope": "FULL_AUDIT_PACKAGE",
+      "granted_at": "2026-07-14T07:57:09.410Z",
+      "includes_ptd_access": true,
+      "includes_cap_profile_hash_verification": true,
+      "includes_merkle_proof_access": true
+    },
+    "timestamp": "2026-07-14T07:57:09.410Z"
+  },
+  {
+    "label": "ACD-V2-HP-01 FROST-signed deployment passes all 4 checks",
+    "ok": true,
+    "detail": {
+      "ok": true
+    },
+    "timestamp": "2026-07-14T07:57:09.481Z"
+  },
+  {
+    "label": "ACD-V2-HP-02 non-FROST (plain KIA key) deployment passes all 4 checks",
+    "ok": true,
+    "detail": {
+      "ok": true
+    },
+    "timestamp": "2026-07-14T07:57:09.504Z"
+  },
+  {
+    "label": "ACD-V2-EDGE-01 Check 3 FROST threshold key revoked -> fails (KEE-1 path ACD-01 restatement dropped)",
+    "ok": true,
+    "detail": {
+      "error": "ACD_CHECK_FAILED",
+      "failed_check": 3,
+      "acd_session_id": "c994ba1f-a7fe-4918-82e9-23885b1b24bd",
+      "timestamp": "2026-07-14T07:57:09.514Z"
+    },
+    "timestamp": "2026-07-14T07:57:09.527Z"
+  },
+  {
+    "label": "ACD-V2-EDGE-02 Check 3 non-FROST KIA signing key revoked -> fails",
+    "ok": true,
+    "detail": {
+      "error": "ACD_CHECK_FAILED",
+      "failed_check": 3,
+      "acd_session_id": "a2086b1c-1469-44f2-a2f4-8b0623db881a",
+      "timestamp": "2026-07-14T07:57:09.556Z"
+    },
+    "timestamp": "2026-07-14T07:57:09.563Z"
+  },
+  {
+    "label": "ACD-V2-HP-03 Check 3 failure logs failed_layer:3 + failed_field:\"gec_signature\" (KEE-1 exact requirement)",
+    "ok": true,
+    "detail": {
+      "ale_type": "ACD_VALIDATION_FAILED",
+      "session_id": "ACD",
+      "actor_id": "GEC",
+      "timestamp": "2026-07-14T07:57:09.580Z",
+      "causal_parent_id": null,
+      "acd_session_id": "0a9e2790-bc50-4926-ab81-e22944f8b7c2",
+      "resource_provider_id": "p1",
+      "failed_check": 3,
+      "reason": "kia_signing_key_revoked",
+      "failure_timestamp": "2026-07-14T07:57:09.571Z",
+      "failed_layer": 3,
+      "failed_field": "gec_signature",
+      "prev_span_hash": "f288427ae4fc23cd1d0fe88cdca8fcdbe16e2f0be2a5519ee7194d0c236281d6",
+      "own_span_hash": "17942afab809d51a5a7dbaedd3fe11d6226c31bb02cd05fc39aa19eca6ef59d4"
+    },
+    "timestamp": "2026-07-14T07:57:09.580Z"
+  },
+  {
+    "label": "ACD-V2-EDGE-03 Check 2 stale/precomputed cedar_policy_hash rejected",
+    "ok": true,
+    "detail": {
+      "error": "ACD_CHECK_FAILED",
+      "failed_check": 2,
+      "acd_session_id": "5b2726f3-a485-44eb-a24c-ff3de5fa9fe8",
+      "timestamp": "2026-07-14T07:57:09.589Z"
+    },
+    "timestamp": "2026-07-14T07:57:09.602Z"
+  },
+  {
+    "label": "ACD-V2-EDGE-04 Check 1 stale manifest rejected via real KIA assertManifestFresh()",
+    "ok": true,
+    "detail": {
+      "error": "ACD_CHECK_FAILED",
+      "failed_check": 1,
+      "acd_session_id": "c81fd42a-200e-4dee-b65e-73224df7796e",
+      "timestamp": "2026-07-14T07:57:09.609Z"
+    },
+    "timestamp": "2026-07-14T07:57:09.610Z"
+  }
+]

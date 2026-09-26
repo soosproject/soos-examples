@@ -1,0 +1,16 @@
+{
+  "scenario": "Byte (decision field) modified in entry 3 of 5 (0-indexed position 2)",
+  "expected_per_plan": "verifyChain() fails at entry 3, not entry 4 or entry 5",
+  "actual": {
+    "before": {
+      "valid": true,
+      "failedAt": null
+    },
+    "after": {
+      "valid": false,
+      "failedAt": 2
+    }
+  },
+  "classification": "Confirmed fixed — was Step 1b finding #1, now resolved",
+  "note": "Prior to the Step 1b own_span_hash fix, this scenario reported failedAt: 3 (one entry late) because verifyChain() could only detect tampering to entry N via entry N+1's prev_span_hash. With own_span_hash added and verifyChain() comparing each entry's recomputation against its OWN own_span_hash, failedAt now correctly equals 2 (0-indexed position 2 = the third entry). No further action needed."
+}

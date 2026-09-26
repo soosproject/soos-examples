@@ -1,0 +1,17 @@
+{
+  "scenario": "Out-of-order append — second entry has an earlier timestamp than the first, AND references a causal_parent_id that does not exist anywhere in the log",
+  "expected_per_plan": "Reject or throw",
+  "actual": {
+    "threw": false,
+    "e1_timestamp": "2026-07-04T09:21:29.098Z",
+    "e2_timestamp": "2026-07-04T09:21:19.098Z",
+    "e2_causal_parent_id": "nonexistent-entry-id-999",
+    "chain_verification": {
+      "valid": true,
+      "failedAt": null
+    }
+  },
+  "classification": "Type II — gap",
+  "note": "append() currently performs NO validation of (a) timestamp monotonicity or (b) whether causal_parent_id refers to an entry that actually exists in the log. Both were silently accepted; verifyChain() still reports valid because the hash chain is computed from append-call order, not from timestamp or causal_parent_id. This is an integration gap between two individually-reasonable pieces: the hash chain guarantees append-order integrity, but causal_parent_id is currently decorative — nothing enforces it references a real prior entry. Logged as SDB-GAR-03 (Type II gap) — a Decision Record is needed on whether GARLog should validate causal_parent_id referential integrity and/or timestamp ordering at append() time, or whether this is left to a higher layer (e.g. SOV Event Stream). TODO marker added in code.",
+  "sdb_entry": "SDB-GAR-03"
+}

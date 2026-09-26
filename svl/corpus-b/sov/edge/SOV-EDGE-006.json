@@ -1,0 +1,10 @@
+{
+  "scenario": "Edge added referencing a to_step_id that was never added via addStep()",
+  "expected": "Reject — referential integrity of the step graph",
+  "actual": {
+    "threw": true,
+    "errorMessage": "MissionPlanSO edge rejected: from_step_id/to_step_id must reference existing steps (s1 -> nonexistent-step)"
+  },
+  "classification": "Confirmed correct — not a new finding",
+  "note": "addEdge() validates both from_step_id and to_step_id exist in the steps array before accepting."
+}

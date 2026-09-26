@@ -1,0 +1,595 @@
+[
+  {
+    "id": "IDP-EDGE-001",
+    "scenario": "IDP_MALFORMED — requested_action empty",
+    "spec_ref": "§5.2(b)",
+    "input": {
+      "idp_id": "7f580ce7-4e25-408d-ab40-c3d16766509d",
+      "step_sequence": 1,
+      "requested_action": "",
+      "declared_goal": {
+        "goal_id": "b8e72798-bf9d-4523-ae0e-a2f8de517acf",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.299Z",
+      "session_id": "s-edge-01",
+      "so_id": "so-edge-1",
+      "mandate_id": "mandate-edge-1"
+    },
+    "outcome": {
+      "ok": false,
+      "deny_code": "IDP_MALFORMED",
+      "detail": "one or more REQUIRED fields missing"
+    }
+  },
+  {
+    "id": "IDP-EDGE-002",
+    "scenario": "IDP_DUPLICATE — idp_id resubmitted",
+    "spec_ref": "§5.2(c)",
+    "input": {
+      "idp_id": "de092c78-316f-4d2c-ade0-e4cd1cfa763b",
+      "step_sequence": 1,
+      "requested_action": "atp:booking:confirm",
+      "declared_goal": {
+        "goal_id": "cd55c365-e580-4887-8123-93ba58e160b3",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.299Z",
+      "session_id": "s-edge-02",
+      "so_id": "so-edge-2",
+      "mandate_id": "mandate-edge-2"
+    },
+    "outcome": {
+      "ok": false,
+      "deny_code": "IDP_DUPLICATE",
+      "detail": "idp_id de092c78-316f-4d2c-ade0-e4cd1cfa763b already committed"
+    }
+  },
+  {
+    "id": "IDP-EDGE-003",
+    "scenario": "IDP_SO_MISMATCH — so_id does not match bound mandate",
+    "spec_ref": "§5.2(d)",
+    "input": {
+      "idp_id": "cba39b90-f0b6-4acc-9292-922f4ed404a8",
+      "step_sequence": 1,
+      "requested_action": "atp:booking:confirm",
+      "declared_goal": {
+        "goal_id": "0d00d6f1-2311-4b42-b894-fffd5d8d71e8",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.299Z",
+      "session_id": "s-edge-03",
+      "so_id": "so-not-bound",
+      "mandate_id": "mandate-edge-3"
+    },
+    "outcome": {
+      "ok": false,
+      "deny_code": "IDP_SO_MISMATCH",
+      "detail": "so_id does not match the governed object bound to mandate_jwt"
+    }
+  },
+  {
+    "id": "IDP-EDGE-004",
+    "scenario": "IDP_MANDATE_MISMATCH — mandate_id does not match jti of presented mandate_jwt",
+    "spec_ref": "§5.2(e)",
+    "input": {
+      "idp_id": "d15b6e4e-bc34-4030-ac3b-eb405c1e4d2b",
+      "step_sequence": 1,
+      "requested_action": "atp:booking:confirm",
+      "declared_goal": {
+        "goal_id": "9ff18d2e-d52f-4e0a-9297-1a393df4e843",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.299Z",
+      "session_id": "s-edge-04",
+      "so_id": "so-edge-4",
+      "mandate_id": "mandate-not-bound"
+    },
+    "outcome": {
+      "ok": false,
+      "deny_code": "IDP_MANDATE_MISMATCH",
+      "detail": "mandate_id does not match the jti claim of the presented mandate_jwt"
+    }
+  },
+  {
+    "id": "IDP-EDGE-005",
+    "scenario": "step_sequence 2 submitted after step_sequence 3 already committed -> rejected",
+    "spec_ref": "§5.2(f), §4.2 step_sequence",
+    "input": {
+      "idp_id": "eb9e3e52-a64b-42f1-bf25-b5ee30348b66",
+      "step_sequence": 2,
+      "requested_action": "atp:booking:confirm",
+      "declared_goal": {
+        "goal_id": "798cb0cd-9605-4160-91bb-39491afd5fa1",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.299Z",
+      "session_id": "s-edge-05",
+      "so_id": "so-edge-5",
+      "mandate_id": "mandate-edge-5"
+    },
+    "outcome": {
+      "ok": false,
+      "deny_code": "IDP_MALFORMED",
+      "detail": "step_sequence 2 not greater than last committed 3"
+    },
+    "notes": "SDB-IDP-02 [new]: §5.2(f) says the GEC SHOULD reject a non-monotonic step_sequence but the -05 deny code registry (§13) has no dedicated code for this condition — sample maps it to IDP_MALFORMED as the closest existing code (Type I mapping), pending confirmation a dedicated code (e.g. IDP_STEP_SEQUENCE_INVALID) is not intended elsewhere in the suite."
+  },
+  {
+    "id": "IDP-EDGE-006",
+    "scenario": "IDP_ENDORSED_EOD_REQUIRED — Class 3 agent, no endorsed_eod_id",
+    "spec_ref": "§4.2, §5.2(i), §13",
+    "input": {
+      "idp_id": "dc6c88c2-327c-417b-9cea-b506ec7467e6",
+      "step_sequence": 1,
+      "requested_action": "atp:booking:confirm",
+      "declared_goal": {
+        "goal_id": "27d1e55d-b243-4e1f-9808-d4d24ecd79e4",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.299Z",
+      "session_id": "s-edge-06",
+      "so_id": "so-edge-6",
+      "mandate_id": "mandate-edge-6"
+    },
+    "outcome": {
+      "ok": false,
+      "deny_code": "IDP_ENDORSED_EOD_REQUIRED",
+      "detail": "Class 3 agent submitted IDP without endorsed_eod_id"
+    }
+  },
+  {
+    "id": "IDP-EDGE-007",
+    "scenario": "IDP_ENDORSED_EOD_INVALID — endorsed_eod_id not found in Event Log",
+    "spec_ref": "§4.2, §5.2(i), §13",
+    "input": {
+      "idp_id": "18a680f0-dca4-4002-933d-ffaa62d75765",
+      "step_sequence": 1,
+      "requested_action": "atp:booking:confirm",
+      "declared_goal": {
+        "goal_id": "4ea1c6f4-0ac1-4edb-aafe-87ed9ecf7979",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.299Z",
+      "session_id": "s-edge-07",
+      "so_id": "so-edge-7",
+      "mandate_id": "mandate-edge-7",
+      "endorsed_eod_id": "987cd034-245e-479c-a877-e2a87ba8c102"
+    },
+    "outcome": {
+      "ok": false,
+      "deny_code": "IDP_ENDORSED_EOD_INVALID",
+      "detail": "endorsed_eod_id does not match a valid ENDORSED_EOD entry"
+    }
+  },
+  {
+    "id": "IDP-EDGE-008",
+    "scenario": "IDP_ENDORSED_EOD_INVALID — endorsed_eod_id exists but bound to a different so_id",
+    "spec_ref": "§4.2 \"covers the so_id ... of this IDP\"",
+    "input": {
+      "idp_id": "9988d489-09cf-4ce0-b671-f4662b0385ce",
+      "step_sequence": 1,
+      "requested_action": "atp:booking:confirm",
+      "declared_goal": {
+        "goal_id": "8ce41fa6-75ac-4e27-8ec3-6892d5bc1671",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.299Z",
+      "session_id": "s-edge-08",
+      "so_id": "so-edge-8",
+      "mandate_id": "mandate-edge-8",
+      "endorsed_eod_id": "3e184c7f-e566-4597-bfd8-a5a3efc1f878"
+    },
+    "outcome": {
+      "ok": false,
+      "deny_code": "IDP_ENDORSED_EOD_INVALID",
+      "detail": "endorsed_eod_id does not match a valid ENDORSED_EOD entry"
+    }
+  },
+  {
+    "id": "IDP-EDGE-009",
+    "scenario": "IDP_PLAN_B_REF_REQUIRED — PLAN_B_ACTIVE session, plan_b_ref absent",
+    "spec_ref": "§4.2 plan_b_ref, §5.2(j), CONF-AEP-14",
+    "input": {
+      "idp_id": "88397720-aee9-4ff4-b960-4464c5d4b762",
+      "step_sequence": 1,
+      "requested_action": "atp:booking:suspend",
+      "declared_goal": {
+        "goal_id": "4a6729e9-b282-4aea-b35a-1b2abf5fb750",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.299Z",
+      "session_id": "s-edge-09",
+      "so_id": "so-edge-9",
+      "mandate_id": "mandate-edge-9"
+    },
+    "outcome": {
+      "ok": false,
+      "deny_code": "IDP_PLAN_B_REF_REQUIRED",
+      "detail": "session_state PLAN_B_ACTIVE requires plan_b_ref"
+    }
+  },
+  {
+    "id": "IDP-EDGE-010",
+    "scenario": "IDP_SPO_EXPIRED — mandate_reference SPO URI resolves to an expired document",
+    "spec_ref": "§4.2(a), §13",
+    "input": {
+      "idp_id": "fdd1abb6-340d-4cd1-9c47-d9c5d663a5c7",
+      "step_sequence": 1,
+      "requested_action": "atp:booking:confirm",
+      "declared_goal": {
+        "goal_id": "47ddcf39-f577-4e63-8ac9-e2ef24899d11",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.299Z",
+      "session_id": "s-edge-10",
+      "so_id": "so-edge-10",
+      "mandate_id": "mandate-edge-10",
+      "mandate_reference": "spo://myauberge/atp-booking-legacy/0.9"
+    },
+    "outcome": {
+      "ok": false,
+      "deny_code": "IDP_SPO_EXPIRED",
+      "detail": "mandate_reference SPO URI resolves to an expired document"
+    }
+  },
+  {
+    "id": "IDP-EDGE-011",
+    "scenario": "mandate_reference does not resolve to any known SPO document",
+    "spec_ref": "§4.2(a)",
+    "input": {
+      "idp_id": "d0200da4-5a7c-48d4-9890-85c575bb6bb1",
+      "step_sequence": 1,
+      "requested_action": "atp:booking:confirm",
+      "declared_goal": {
+        "goal_id": "3de3e132-88a6-4eb2-b49a-3d3b9324b5d4",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.299Z",
+      "session_id": "s-edge-11",
+      "so_id": "so-edge-11",
+      "mandate_id": "mandate-edge-11",
+      "mandate_reference": "spo://nonexistent/uri/0.0"
+    },
+    "outcome": {
+      "ok": false,
+      "deny_code": "IDP_SPO_EXPIRED",
+      "detail": "mandate_reference 'spo://nonexistent/uri/0.0' does not resolve"
+    },
+    "notes": "Type I note: §4.2(a) only names IDP_SPO_EXPIRED for \"resolves to an expired document\" — it does not give a distinct code for \"does not resolve at all.\" Sample uses IDP_SPO_EXPIRED for both, on the reading that an unresolvable URI is a degenerate case of \"not currently valid.\" Not logged as an SDB — narrower reading than SDB-IDP-02, flagged here for visibility only."
+  },
+  {
+    "id": "IDP-EDGE-012",
+    "scenario": "IDP_ACTION_OUTSIDE_SPO — requested_action not in the SPO action space",
+    "spec_ref": "§4.2(b), §13",
+    "input": {
+      "idp_id": "63322dae-a311-4f63-ab72-91715f7fc957",
+      "step_sequence": 1,
+      "requested_action": "atp:booking:delete_forever",
+      "declared_goal": {
+        "goal_id": "cd14bdc4-6ccd-4427-a356-61c3d40c11f8",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.299Z",
+      "session_id": "s-edge-12",
+      "so_id": "so-edge-12",
+      "mandate_id": "mandate-edge-12",
+      "mandate_reference": "spo://myauberge/atp-booking-standard/1.0"
+    },
+    "outcome": {
+      "ok": false,
+      "deny_code": "IDP_ACTION_OUTSIDE_SPO",
+      "detail": "atp:booking:delete_forever not within SPO action space"
+    }
+  },
+  {
+    "id": "IDP-EDGE-013",
+    "scenario": "IDP_SPO_TYPE_MISMATCH — mandate_reference SPO defines atp/booking-object/1.0 but so_id is a mission-object instance",
+    "spec_ref": "§4.2(c), §13",
+    "input": {
+      "idp_id": "4a4e34e8-c08b-4ead-8f2f-8c4ece98c007",
+      "step_sequence": 1,
+      "requested_action": "atp:booking:confirm",
+      "declared_goal": {
+        "goal_id": "23b56b2e-a9fc-44da-a49f-58a64225d1b6",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RULE_BASED",
+        "description": "Standing instruction execution"
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.300Z",
+      "session_id": "s-edge-13",
+      "so_id": "so-edge-13",
+      "mandate_id": "mandate-edge-13",
+      "mandate_reference": "spo://myauberge/atp-booking-standard/1.0"
+    },
+    "outcome": {
+      "ok": false,
+      "deny_code": "IDP_SPO_TYPE_MISMATCH",
+      "detail": "mandate_reference SPO does not define this so_id SO Type"
+    }
+  },
+  {
+    "id": "IDP-EDGE-014",
+    "scenario": "INTAKE_PRINCIPAL_UNRECOGNIZED — credential not recognized by Party Registry stub",
+    "spec_ref": "§4.6.1, §4.6.3",
+    "input": {
+      "eod": {
+        "eod_id": "f2ad56e9-02a6-47e3-96c5-5a903428888e",
+        "primary_outcome": {
+          "target_state": "CONFIRMED"
+        }
+      },
+      "mandate_jwt_jti": "mandate-edge-14",
+      "so_id": "so-edge-14",
+      "so_type_id": "atp/booking-object/1.0",
+      "principal_credential": "not-a-kia-credential",
+      "requested_at": "2026-07-08T07:53:51.300Z",
+      "request_id": "f52c7e50-2909-459a-8fce-ea27c0f27bd6"
+    },
+    "outcome": {
+      "ok": false,
+      "error_code": "INTAKE_PRINCIPAL_UNRECOGNIZED",
+      "detail": "principal_credential not recognized by Party Registry stub"
+    }
+  },
+  {
+    "id": "IDP-EDGE-015",
+    "scenario": "INTAKE_EOD_MALFORMED — primary_outcome missing",
+    "spec_ref": "§4.6.3",
+    "input": {
+      "eod": {
+        "eod_id": "0a5eebb3-d69b-4a6c-a4bd-3b963defd0af"
+      },
+      "mandate_jwt_jti": "mandate-edge-15",
+      "so_id": "so-edge-15",
+      "so_type_id": "atp/booking-object/1.0",
+      "principal_credential": "kia:principal-15",
+      "requested_at": "2026-07-08T07:53:51.300Z",
+      "request_id": "c6015305-b6ce-471c-8161-1f8a97e55b3f"
+    },
+    "outcome": {
+      "ok": false,
+      "error_code": "INTAKE_EOD_MALFORMED",
+      "detail": "primary_outcome.target_state missing"
+    }
+  },
+  {
+    "id": "IDP-EDGE-016",
+    "scenario": "INTAKE_PRIMARY_OUTCOME_INVALID — target_state not in SO Type state machine",
+    "spec_ref": "§4.6.3",
+    "input": {
+      "eod": {
+        "eod_id": "90964866-ce6c-41ca-bd95-bc7fa27cb2df",
+        "primary_outcome": {
+          "target_state": "NOT_A_REAL_STATE"
+        }
+      },
+      "mandate_jwt_jti": "mandate-edge-16",
+      "so_id": "so-edge-16",
+      "so_type_id": "atp/booking-object/1.0",
+      "principal_credential": "kia:principal-16",
+      "requested_at": "2026-07-08T07:53:51.300Z",
+      "request_id": "80692b5d-5e85-4b8f-9f3d-5783b7d49aca"
+    },
+    "outcome": {
+      "ok": false,
+      "error_code": "INTAKE_PRIMARY_OUTCOME_INVALID",
+      "detail": "target_state 'NOT_A_REAL_STATE' not in atp/booking-object/1.0 state machine"
+    }
+  },
+  {
+    "id": "IDP-EDGE-017",
+    "scenario": "INTAKE_PLAN_B_INVALID — plan_b_target_state not in SO Type state machine",
+    "spec_ref": "§4.6.3",
+    "input": {
+      "eod": {
+        "eod_id": "47d16492-289d-439d-85ef-5d749f7911c5",
+        "primary_outcome": {
+          "target_state": "CONFIRMED"
+        },
+        "plan_b": {
+          "plan_b_id": "pb-17",
+          "plan_b_target_state": "NOT_A_REAL_STATE"
+        }
+      },
+      "mandate_jwt_jti": "mandate-edge-17",
+      "so_id": "so-edge-17",
+      "so_type_id": "atp/booking-object/1.0",
+      "principal_credential": "kia:principal-17",
+      "requested_at": "2026-07-08T07:53:51.300Z",
+      "request_id": "bb1a9742-6725-4eef-96ca-437352709ae4"
+    },
+    "outcome": {
+      "ok": false,
+      "error_code": "INTAKE_PLAN_B_INVALID",
+      "detail": "plan_b_target_state 'NOT_A_REAL_STATE' not in atp/booking-object/1.0 state machine"
+    }
+  },
+  {
+    "id": "IDP-EDGE-018",
+    "scenario": "RETRY_WHAT_CHANGED_WEAK — RETRY_CONTINUATION description does not reference a specific enrichment field (warning, not reject — accepted with warning per §13 registry note)",
+    "spec_ref": "§4.3, §13",
+    "input": {
+      "idp_id": "28643524-ce18-47c5-95cc-783768b86bb3",
+      "step_sequence": 2,
+      "requested_action": "atp:booking:confirm",
+      "declared_goal": {
+        "goal_id": "7eff8d3c-0eeb-48d8-b1a2-797a3e249f0c",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RETRY_CONTINUATION",
+        "description": "Trying again, think it will work this time."
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.300Z",
+      "session_id": "s-edge-18",
+      "so_id": "so-edge-18",
+      "mandate_id": "mandate-edge-18",
+      "context_refs": [
+        "c64d5a67-bb28-479d-b2c9-dc1dbdb7a3fd"
+      ]
+    },
+    "outcome": {
+      "ok": true,
+      "warnings": [
+        "RETRY_WHAT_CHANGED_WEAK"
+      ],
+      "cedarContext": {
+        "idp.reasoning_basis.type": "RETRY_CONTINUATION",
+        "idp.confidence_level": 0.8,
+        "idp.hem_urgency": "NONE",
+        "idp.reasoning_mode": "ROUTINE",
+        "idp.prior_denial_count": 0,
+        "idp.has_endorsed_eod": false,
+        "idp.plan_b_active": false,
+        "idp.miscalibration_score": 0
+      }
+    }
+  },
+  {
+    "id": "IDP-EDGE-019",
+    "scenario": "RETRY_WITHOUT_PRIOR_REF — RETRY_CONTINUATION with no context_refs to a prior IDP_SUBMITTED",
+    "spec_ref": "§5.2(l)",
+    "input": {
+      "idp_id": "e260a94b-12c7-4fa0-933a-39b0a3fd7dee",
+      "step_sequence": 1,
+      "requested_action": "atp:booking:confirm",
+      "declared_goal": {
+        "goal_id": "75e88fc6-4231-4e84-8daa-e52fb33cb27a",
+        "description": "Corpus scenario goal"
+      },
+      "reasoning_basis": {
+        "type": "RETRY_CONTINUATION",
+        "description": "Retrying per enrichment.confidence_level_required."
+      },
+      "confidence_level": 0.8,
+      "hem_urgency": "NONE",
+      "timestamp": "2026-07-08T07:53:51.300Z",
+      "session_id": "s-edge-19",
+      "so_id": "so-edge-19",
+      "mandate_id": "mandate-edge-19",
+      "context_refs": []
+    },
+    "outcome": {
+      "ok": true,
+      "warnings": [
+        "RETRY_WITHOUT_PRIOR_REF"
+      ],
+      "cedarContext": {
+        "idp.reasoning_basis.type": "RETRY_CONTINUATION",
+        "idp.confidence_level": 0.8,
+        "idp.hem_urgency": "NONE",
+        "idp.reasoning_mode": "ROUTINE",
+        "idp.prior_denial_count": 0,
+        "idp.has_endorsed_eod": false,
+        "idp.plan_b_active": false,
+        "idp.miscalibration_score": 0
+      }
+    }
+  },
+  {
+    "id": "IDP-EDGE-020",
+    "scenario": "PD-EOD scope-bounding — prompt implies out-of-scope target_state; GEC must NOT silently clip, must surface derivation_warnings",
+    "spec_ref": "§4.7.2",
+    "input": {
+      "source_prompt": "Please refund the guest directly to their credit card.",
+      "implied_target_state": "REFUNDED"
+    },
+    "outcome": {
+      "derivation_warnings": [
+        "prompt implies target_state 'REFUNDED', which is outside the atp/booking-object/1.0 state machine (§4.7.2 scope-bounding rule) — GEC did NOT silently clip; returning OUT_OF_SCOPE for human review"
+      ]
+    }
+  },
+  {
+    "id": "IDP-EDGE-021",
+    "scenario": "Calibration boundary: window <10 never evaluates; ratio exactly at 0.40 threshold does not fire (§7.2 \"greater than a configurable threshold\" is a strict inequality)",
+    "spec_ref": "§7.2",
+    "input": {
+      "window_at_9": 9,
+      "ratio_at_10": "4/10 = 0.40"
+    },
+    "outcome": {
+      "miscalibration_active_at_9_idps": false,
+      "miscalibration_active_at_exact_threshold": false
+    }
+  }
+]

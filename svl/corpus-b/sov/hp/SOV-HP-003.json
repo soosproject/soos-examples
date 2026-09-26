@@ -1,0 +1,31 @@
+{
+  "scenario": "SO creation (root, no parent)",
+  "so": {
+    "so_id": "019f2cc6-68f1-76c7-8788-25e93ee00615",
+    "so_type_id": "atp/booking-object/1.0",
+    "parent_so_id": null,
+    "current_phase": "ACTIVE"
+  },
+  "events": [
+    {
+      "so_id": "019f2cc6-68f1-76c7-8788-25e93ee00615",
+      "event_type": "SO_CREATED",
+      "actor_id": "GEC",
+      "timestamp": "2026-07-04T10:57:08.337Z",
+      "kernel_id": "kernel-root-3",
+      "payload": {
+        "so_type_id": "atp/booking-object/1.0",
+        "current_state": "CONFIRMED",
+        "current_phase": "ACTIVE",
+        "parent_so_id": null
+      },
+      "entry_id": "019f2cc6-68f1-75fe-94fa-2ad29363c718",
+      "prior_event_id": null,
+      "gec_signature": "8c21bd5d660b854e3ee127a777732de58a3330ed6e038991b23c0374d28ad18062d12f3326f6c1326b43fe0b31645f9030dc38a9514880e19409671f82d78d03"
+    }
+  ],
+  "root_check": {
+    "parent_so_id_is_null": true,
+    "prior_event_id_is_null": true
+  }
+}

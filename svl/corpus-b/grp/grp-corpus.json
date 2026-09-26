@@ -1,0 +1,270 @@
+[
+  {
+    "label": "GRP-HP-01 P-TYPE-1 publisher verification passes",
+    "ok": true,
+    "detail": {
+      "ok": true
+    },
+    "timestamp": "2026-07-14T07:43:20.785Z"
+  },
+  {
+    "label": "GRP-EDGE-01 P-TYPE-1 invalid KIA signature rejected",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "rejection_reason": "kia_signature_invalid"
+    },
+    "timestamp": "2026-07-14T07:43:20.786Z"
+  },
+  {
+    "label": "GRP-EDGE-02 P-TYPE-2 expired EPR registration rejected",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "rejection_reason": "publisher_registration_expired"
+    },
+    "timestamp": "2026-07-14T07:43:20.786Z"
+  },
+  {
+    "label": "GRP-EDGE-03 P-TYPE-3 publisher not pre-configured rejected",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "rejection_reason": "publisher_not_registered"
+    },
+    "timestamp": "2026-07-14T07:43:20.786Z"
+  },
+  {
+    "label": "GRP-EDGE-04 session_nonce mismatch rejected",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "rejection_reason": "session_nonce_mismatch"
+    },
+    "timestamp": "2026-07-14T07:43:20.786Z"
+  },
+  {
+    "label": "GRP-EDGE-05 empty impact set -> no_impact_match condition",
+    "ok": true,
+    "detail": {
+      "impactSet": [],
+      "hasImpact": false
+    },
+    "timestamp": "2026-07-14T07:43:20.786Z"
+  },
+  {
+    "label": "GRP-EDGE-06 mandate_compatible:false forces escalate tier",
+    "ok": true,
+    "detail": {
+      "tier": "escalate"
+    },
+    "timestamp": "2026-07-14T07:43:20.786Z"
+  },
+  {
+    "label": "GRP-EDGE-07 CRITICAL severity forces escalate tier",
+    "ok": true,
+    "detail": {
+      "tier": "escalate"
+    },
+    "timestamp": "2026-07-14T07:43:20.786Z"
+  },
+  {
+    "label": "GRP-HP-02 FALLBACK autonomous when all 3 DEC-RGP-08 conditions pass",
+    "ok": true,
+    "detail": {
+      "autonomous": true,
+      "result": {
+        "cond1_trust_parity_or_improvement": true,
+        "cond2_capability_class_coverage": true,
+        "cond3_resource_envelope_compliance": true,
+        "allPass": true,
+        "failingConditions": []
+      },
+      "hem_class": null
+    },
+    "timestamp": "2026-07-14T07:43:20.786Z"
+  },
+  {
+    "label": "GRP-EDGE-08 FALLBACK rejected when not pre-declared in EOD",
+    "ok": true,
+    "detail": {
+      "autonomous": false,
+      "result": {
+        "cond1_trust_parity_or_improvement": true,
+        "cond2_capability_class_coverage": true,
+        "cond3_resource_envelope_compliance": true,
+        "allPass": true,
+        "failingConditions": []
+      },
+      "hem_class": "HEM-HIGH-1"
+    },
+    "timestamp": "2026-07-14T07:43:20.786Z"
+  },
+  {
+    "label": "GRP-EDGE-09 Cond1 (trust decrease) fails -> HEM-HIGH-1",
+    "ok": true,
+    "detail": {
+      "autonomous": false,
+      "result": {
+        "cond1_trust_parity_or_improvement": false,
+        "cond2_capability_class_coverage": true,
+        "cond3_resource_envelope_compliance": true,
+        "allPass": false,
+        "failingConditions": [
+          1
+        ]
+      },
+      "hem_class": "HEM-HIGH-1"
+    },
+    "timestamp": "2026-07-14T07:43:20.787Z"
+  },
+  {
+    "label": "GRP-EDGE-10 Cond2 (capability class mismatch) fails -> HEM-PRE-2",
+    "ok": true,
+    "detail": {
+      "autonomous": false,
+      "result": {
+        "cond1_trust_parity_or_improvement": true,
+        "cond2_capability_class_coverage": false,
+        "cond3_resource_envelope_compliance": true,
+        "allPass": false,
+        "failingConditions": [
+          2
+        ]
+      },
+      "hem_class": "HEM-PRE-2"
+    },
+    "timestamp": "2026-07-14T07:43:20.787Z"
+  },
+  {
+    "label": "GRP-EDGE-11 Cond3 (budget exceeded) fails -> HEM-DS-1",
+    "ok": true,
+    "detail": {
+      "autonomous": false,
+      "result": {
+        "cond1_trust_parity_or_improvement": true,
+        "cond2_capability_class_coverage": true,
+        "cond3_resource_envelope_compliance": false,
+        "allPass": false,
+        "failingConditions": [
+          3
+        ]
+      },
+      "hem_class": "HEM-DS-1"
+    },
+    "timestamp": "2026-07-14T07:43:20.787Z"
+  },
+  {
+    "label": "GRP-HP-03 multiple conditions fail -> highest-priority HEM-HIGH-1 wins",
+    "ok": true,
+    "detail": {
+      "autonomous": false,
+      "result": {
+        "cond1_trust_parity_or_improvement": false,
+        "cond2_capability_class_coverage": false,
+        "cond3_resource_envelope_compliance": false,
+        "allPass": false,
+        "failingConditions": [
+          1,
+          2,
+          3
+        ]
+      },
+      "hem_class": "HEM-HIGH-1"
+    },
+    "timestamp": "2026-07-14T07:43:20.787Z"
+  },
+  {
+    "label": "GRP-HP-04 RETRY ceiling reached at default 3 attempts",
+    "ok": true,
+    "detail": {
+      "r1": {
+        "ok": true,
+        "attempt_count": 1,
+        "ceiling_reached": false
+      },
+      "r2": {
+        "ok": true,
+        "attempt_count": 2,
+        "ceiling_reached": false
+      },
+      "r3": {
+        "ok": false,
+        "attempt_count": 3,
+        "ceiling_reached": true
+      }
+    },
+    "timestamp": "2026-07-14T07:43:20.787Z"
+  },
+  {
+    "label": "GRP-HP-05 RETRY backoff is exponential with 1000ms minimum",
+    "ok": true,
+    "detail": {
+      "backoff1": 1000,
+      "backoff2": 2000,
+      "backoff3": 4000
+    },
+    "timestamp": "2026-07-14T07:43:20.787Z"
+  },
+  {
+    "label": "GRP-HP-06 ESCALATE records action_classes_attempted",
+    "ok": true,
+    "detail": {
+      "ale_type": "GRP_ESCALATE_TRIGGERED",
+      "session_id": "GRP",
+      "actor_id": "GEC",
+      "timestamp": "2026-07-14T07:43:20.787Z",
+      "causal_parent_id": null,
+      "event_id": "e17",
+      "hem_class": "HEM-HIGH-1",
+      "trigger_type": "GRP-T3",
+      "action_classes_attempted": [
+        "RETRY",
+        "ROLLBACK"
+      ],
+      "prev_span_hash": "GENESIS",
+      "own_span_hash": "e04950f5d0125b31a21fa5aaebc3e7d873f150b7311ce975d68229562fb54bbe"
+    },
+    "timestamp": "2026-07-14T07:43:20.787Z"
+  },
+  {
+    "label": "GRP-HP-07 ROLLBACK initiate + complete succeeds with valid endpoint",
+    "ok": true,
+    "detail": {
+      "nonce": "2621b9aa-7201-42ae-9585-1b8c67860368"
+    },
+    "timestamp": "2026-07-14T07:43:20.787Z"
+  },
+  {
+    "label": "GRP-EDGE-12 ROLLBACK rejected with no defined rollback endpoint",
+    "ok": true,
+    "detail": "ROLLBACK MUST NOT be triggered for actions with no defined rollback endpoint (§11.4(2))",
+    "timestamp": "2026-07-14T07:43:20.787Z"
+  },
+  {
+    "label": "GRP-HP-08 ROLLBACK completion triggers HEM-HIGH-1 post-review",
+    "ok": true,
+    "detail": {
+      "ale_type": "GRP_ESCALATE_TRIGGERED",
+      "session_id": "GRP",
+      "actor_id": "GEC",
+      "timestamp": "2026-07-14T07:43:20.787Z",
+      "causal_parent_id": null,
+      "event_id": "e20",
+      "hem_class": "HEM-HIGH-1",
+      "trigger_type": "GRP-T3",
+      "action_classes_attempted": [
+        "ROLLBACK"
+      ],
+      "prev_span_hash": "29e96c4aab8b9530a805ecb44770615e0f4298c4912e5365031c97f3f353aecb",
+      "own_span_hash": "fa45a01a9cf9529f95a24843a44f60dd699efb00205d3c73b3a98373637279a4"
+    },
+    "timestamp": "2026-07-14T07:43:20.788Z"
+  },
+  {
+    "label": "GRP-EDGE-13 DEC-RGP-08 rejects stale (expired) fallback fingerprint",
+    "ok": true,
+    "detail": "DEC-RGP-08 MUST be evaluated against current Stage 1 fingerprint data, not data past valid_until",
+    "timestamp": "2026-07-14T07:43:20.788Z"
+  }
+]

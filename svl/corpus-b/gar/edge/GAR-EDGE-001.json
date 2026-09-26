@@ -1,0 +1,11 @@
+{
+  "scenario": "Empty log — verifyChain() called on a session_id with zero entries",
+  "expected_per_plan": "Valid (vacuously true) or defined error",
+  "actual": {
+    "valid": true,
+    "failedAt": null
+  },
+  "classification": "Type II — ambiguity",
+  "note": "GAR-03 does not define behavior for verifyChain() on a session with no entries. Current implementation returns { valid: true, failedAt: null } (vacuous truth via empty-loop fallthrough) rather than a defined error or a distinct \"no such session\" state. A different implementer could reasonably throw instead. Logged as SDB-GAR-02 — non-blocking for sample code, recommend GAR-04 specify this explicitly.",
+  "sdb_entry": "SDB-GAR-02"
+}

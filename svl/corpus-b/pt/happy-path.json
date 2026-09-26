@@ -1,0 +1,30 @@
+{
+  "draft": "draft-sato-soos-pt-02",
+  "corpus": "B",
+  "phase": "SVL Phase A — happy path",
+  "generated": "2026-07-08",
+  "pre_flight_question": "Are the five dimension weights deployment parameters or protocol-defined defaults? RESOLVED from draft §5.7: both — the draft gives protocol-defined defaults (SAS 0.30, JS 0.25, ES 0.20, PS 0.15, AS 0.10) AND states 'Weights are operator-configurable.' Sample accepts configurable weights with these as defaults.",
+  "note": "Plan v6's Step 4 coding-assistant block described a different, stale PT model (trust_band state machine; SAS=scope adherence, JS=judgement stability, ES=escalation sensitivity, PS=principal signal responsiveness, AS=anomaly score). This corpus is built against the actual draft-sato-soos-pt-02 text, where SAS/JS/ES/PS/AS = Self-Assessment/Judgment/Effectiveness/Precision/Adaptability. See MJWT precedent for how such plan/draft drift is handled.",
+  "logs": [
+    { "id": "H-01", "scenario": "SAS strongly positive signal", "description": "IDP declares confidence 0.85, cedar_result PERMIT — STRONGLY POSITIVE SAS signal (>=0.80 confidence, PERMIT)." },
+    { "id": "H-02", "scenario": "SAS strongly negative signal (overconfidence)", "description": "IDP declares confidence 0.90, cedar_result DENY — STRONGLY NEGATIVE SAS signal (overconfidence)." },
+    { "id": "H-03", "scenario": "SAS neutral — DENY routed to HEM", "description": "DENY with hem_required:true is NEUTRAL regardless of declared confidence — Cedar policy mandated oversight, not the agent's confidence." },
+    { "id": "H-04", "scenario": "JS strongly positive — escalation confirmed by TERMINATE", "description": "HEM_AGENT_ESCALATED resolved TERMINATE. Agent escalated a decision that would have caused harm." },
+    { "id": "H-05", "scenario": "JS mildly negative — trivial over-escalation", "description": "HEM_AGENT_ESCALATED resolved APPROVE in under T_trivial (default 30s) — over-escalation signal." },
+    { "id": "H-06", "scenario": "JS neutral — Cedar-mandated escalation", "description": "HEM_MANDATORY, Cedar policy required escalation regardless of agent's own assessment — NEUTRAL, agent not scored." },
+    { "id": "H-07", "scenario": "ES positive — GOAL_ACHIEVED with complexity multiplier", "description": "AEP_SESSION_CLOSED, closure_reason GOAL_ACHIEVED, total_iterations 14 (>=10, complexity multiplier applies)." },
+    { "id": "H-08", "scenario": "ES strongly negative — KERNEL_REJECTED", "description": "AEP_SESSION_CLOSED, closure_reason KERNEL_REJECTED — policy violation, strongly negative ES signal." },
+    { "id": "H-09", "scenario": "PS — zero compensating actions", "description": "47 STATE_TRANSITIONED entries, 0 COMPENSATING_ACTION_TAKEN entries. compensating_action_rate 0.0, CAR_score 1.0 (CAR_threshold default 0.05)." },
+    { "id": "H-10", "scenario": "PS — moderate compensating action rate", "description": "40 transitions, 1 compensating action. rate 0.025, CAR_score = 1.0 - min(1.0, 0.025/0.05) = 0.5." },
+    { "id": "H-11", "scenario": "PS — externally-caused compensating action exempted", "description": "1 compensating action marked externally-caused (weather disruption) by human principal — exempted from PS computation per draft's SHOULD provision." },
+    { "id": "H-12", "scenario": "AS positive — successful RETRY_CONTINUATION", "description": "Cedar DENY followed by successful RETRY_CONTINUATION in the same AEP Session — agent adapted." },
+    { "id": "H-13", "scenario": "AS mildly negative — silent retry (CONF-AEP-07 violation)", "description": "Transition attempted without RETRY_CONTINUATION after DENY — silent retry pattern." },
+    { "id": "H-14", "scenario": "AS negative — repeated DENY same deny_code, no adaptation", "description": "Multiple DENYs for same action, same deny_code, agent not adjusting reasoning." },
+    { "id": "H-15", "scenario": "Composite score — baseline agent, zero sessions", "description": "All five dimensions at PT Baseline 0.5. Composite 0.5. low_confidence true (session_count 0 < 20)." },
+    { "id": "H-16", "scenario": "Composite score — 10 sessions, low_confidence still true", "description": "Matches Appendix A.2: SAS 0.71, JS 0.75, ES 0.80, PS 0.90, AS 0.85. Weighted composite ~0.79. low_confidence true (session_count 10 < 20)." },
+    { "id": "H-17", "scenario": "Composite score — 30 sessions, elevation-eligible", "description": "Matches Appendix A.3: SAS 0.82, JS 0.88, ES 0.87, PS 0.93, AS 0.91. Composite ~0.87. low_confidence false (all dimensions >= 20 sessions)." },
+    { "id": "H-18", "scenario": "Elevation recommendation issued", "description": "All five dimensions >= ELEVATION_THRESHOLD, session_count >= 20 for all, no DECLINING trend, no STRONGLY NEGATIVE signal in last 30 days — PT_RECOMMENDATION_ISSUED (ELEVATION), mandate_ceiling 2 -> 3." },
+    { "id": "H-19", "scenario": "Elevation approved by human principal", "description": "Human principal reviews ProgressiveTrustSummary, notes JS STRONGLY POSITIVE TERMINATE signal, APPROVES. PT_RECOMMENDATION_APPLIED recorded." },
+    { "id": "H-20", "scenario": "Trust decay after inactivity — matches Appendix A.4 JS exactly", "description": "45-day gap, JS half-life 45 days (default). Decay factor 0.5^(45/45)=0.5. score = baseline + (0.88-0.5)*0.5 = 0.69. Exact match to Appendix A.4's illustrative JS value." }
+  ]
+}

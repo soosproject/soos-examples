@@ -1,0 +1,12 @@
+{
+  "scenario": "Zone A personal data check (should reject)",
+  "attempted_zone_a_fields": {
+    "email": "guest@example.com",
+    "trip_id": "trip-1"
+  },
+  "result": {
+    "threw": true,
+    "errorMessage": "Zone A write rejected: field 'email' resembles personal data (INV-ZA-1, SOV §Zone A)"
+  },
+  "invariant": "INV-ZA-1 — Zone A MUST NOT contain personal data"
+}

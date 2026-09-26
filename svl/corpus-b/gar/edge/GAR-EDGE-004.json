@@ -1,0 +1,10 @@
+{
+  "scenario": "CEDAR_DENY entry appended without cedar_policy_id",
+  "expected_per_plan": "Reject at append — mandatory provenance field",
+  "actual": {
+    "threw": true,
+    "errorMessage": "GAR append rejected: CEDAR_DENY missing mandatory provenance field 'cedar_policy_id' (GAR-03 §13.3)"
+  },
+  "classification": "Confirmed correct — not a new finding",
+  "note": "append() throws as required: \"GAR append rejected: CEDAR_DENY missing mandatory provenance field 'cedar_policy_id' (GAR-03 §13.3)\". Matches GAR-03's REQUIRED language literally (hard throw, not silent skip) — this was the implementation style decision noted during Step 1a. No new issue."
+}

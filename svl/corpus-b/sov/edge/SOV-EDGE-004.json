@@ -1,0 +1,10 @@
+{
+  "scenario": "Personal data field ('email') nested one level inside an innocuous-looking parent key ('contact')",
+  "expected": "Reject — INV-ZA-1 applies to Zone A content regardless of nesting depth",
+  "actual": {
+    "threw": true,
+    "errorMessage": "Zone A write rejected: field 'contact.email' resembles personal data (INV-ZA-1, SOV §Zone A)"
+  },
+  "classification": "Fixed — was a real gap (Type I, our own code)",
+  "note": "Prior to this fix, assertNoPersonalData() only scanned top-level keys of the Zone A object, so { contact: { email: '...' } } passed silently — the denylist check never saw the 'email' key because it only ever inspected 'contact'. Fixed by recursing into nested plain objects (arrays intentionally left unrecursed for this pass — see SDB-03). This was a correctness bug in our own implementation of a stated MUST (INV-ZA-1), not a draft ambiguity, so fixed directly rather than merely logged."
+}

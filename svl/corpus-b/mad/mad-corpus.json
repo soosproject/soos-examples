@@ -1,0 +1,228 @@
+[
+  {
+    "label": "SACR-HP-01 issuance happy path",
+    "ok": true,
+    "detail": {
+      "sacr_id": "309e6d74-1a50-427a-8168-654a169e1cc2"
+    },
+    "timestamp": "2026-07-10T03:47:05.996Z"
+  },
+  {
+    "label": "SACR-EDGE-01 tool_subset violation",
+    "ok": true,
+    "detail": "spawn rejected: requested tools not a subset of parent's tool access: NOT_A_PARENT_TOOL",
+    "timestamp": "2026-07-10T03:47:05.996Z"
+  },
+  {
+    "label": "SACR-EDGE-02 spawn_depth_exceeded",
+    "ok": true,
+    "detail": "spawn rejected: requested max_spawn_depth 1 exceeds parent's own max_spawn_depth (1) - 1 = 0",
+    "timestamp": "2026-07-10T03:47:05.998Z"
+  },
+  {
+    "label": "SACR-EDGE-03 mandate_narrowing_violation (INV-4)",
+    "ok": true,
+    "detail": "spawn rejected: requested Cedar actions not a subset of parent's (INV-4): atp:mission:advance",
+    "timestamp": "2026-07-10T03:47:05.998Z"
+  },
+  {
+    "label": "XPID-HP-01 deterministic derivation",
+    "ok": true,
+    "detail": {
+      "xpid1": "ae71095d-a2db-58ef-bbb4-6b39ce5b33f8",
+      "xpid2": "ae71095d-a2db-58ef-bbb4-6b39ce5b33f8"
+    },
+    "timestamp": "2026-07-10T03:47:05.998Z"
+  },
+  {
+    "label": "XPID-EDGE-01 distinct inputs produce distinct XPIDs",
+    "ok": true,
+    "detail": {
+      "xpidA": "da961db8-2b0c-50fc-bf7f-4a910d01952f",
+      "xpidB": "8784ac31-333e-596e-b8f1-c3b6cdac2330"
+    },
+    "timestamp": "2026-07-10T03:47:05.998Z"
+  },
+  {
+    "label": "HUB-EDGE-01 DirectSubAgentComm DENY under hub_only:true",
+    "ok": true,
+    "detail": "session 8d9f4288-988b-470f-8e60-7466717b2332 is hub_only:true and MUST NOT communicate directly with 77c7041b-ea25-416f-a40e-e25956e62400 (CONF-MAD-HUB-01/03)",
+    "timestamp": "2026-07-10T03:47:05.999Z"
+  },
+  {
+    "label": "HUB-EDGE-02 hub_only:false rejected from hub_only:true parent (CONF-MAD-HUB-04)",
+    "ok": true,
+    "detail": "spawn rejected: hub_only:false requested by a hub_only:true parent (CONF-MAD-HUB-04)",
+    "timestamp": "2026-07-10T03:47:05.999Z"
+  },
+  {
+    "label": "DEPTH-HP-01 boundary depth (parent-1) accepted",
+    "ok": true,
+    "detail": {
+      "max_spawn_depth": 2
+    },
+    "timestamp": "2026-07-10T03:47:05.999Z"
+  },
+  {
+    "label": "R1-HP-01 CAP Tier 0-A violation -> PARTIAL",
+    "ok": true,
+    "detail": {
+      "session_id": "session-r1-bb5b8f66-9fbf-4ad9-94c4-f436c54e5433",
+      "trigger": "R-1",
+      "completion_state": "PARTIAL",
+      "cascade_scope": "FULL_CASCADE_TO_DESCENDANTS",
+      "revoked_sessions": [
+        "session-r1-bb5b8f66-9fbf-4ad9-94c4-f436c54e5433"
+      ],
+      "continuation_authority": "HUMAN_PRINCIPAL_MUST_REAUTHORIZE"
+    },
+    "timestamp": "2026-07-10T03:47:05.999Z"
+  },
+  {
+    "label": "R1-HP-02 CONTINUATION_AWAITING_PRINCIPAL recorded (SDB-MAD-01 substitution for \"MANDATE_HOLD\")",
+    "ok": true,
+    "detail": {},
+    "timestamp": "2026-07-10T03:47:05.999Z"
+  },
+  {
+    "label": "R3-HP-01 non-response -> UNKNOWN, selective cascade (responsive child survives)",
+    "ok": true,
+    "detail": {
+      "session_id": "session-r3-parent-9c25886d-1e64-4aed-ac79-861d2e52e7c2",
+      "trigger": "R-3",
+      "completion_state": "UNKNOWN",
+      "cascade_scope": "SELECTIVE",
+      "revoked_sessions": [
+        "session-r3-parent-9c25886d-1e64-4aed-ac79-861d2e52e7c2",
+        "session-r3-nonresponsive-c8e0ab23-843c-4a5a-89e3-204210a40f5c"
+      ],
+      "continuation_authority": "OPERATOR_MAY_REAUTHORIZE"
+    },
+    "timestamp": "2026-07-10T03:47:05.999Z"
+  },
+  {
+    "label": "R2-EDGE-01 scope boundary detected pre-execution -> CLEAN",
+    "ok": true,
+    "detail": {
+      "session_id": "session-r2-clean-4727a829-1ce5-4b60-8165-1ed5d7eda24c",
+      "trigger": "R-2",
+      "completion_state": "CLEAN",
+      "cascade_scope": "FULL_CASCADE_TO_DESCENDANTS",
+      "revoked_sessions": [
+        "session-r2-clean-4727a829-1ce5-4b60-8165-1ed5d7eda24c"
+      ],
+      "continuation_authority": "HUMAN_PRINCIPAL_MUST_REAUTHORIZE"
+    },
+    "timestamp": "2026-07-10T03:47:05.999Z"
+  },
+  {
+    "label": "R2-EDGE-02 scope boundary post-irreversible-action -> PARTIAL",
+    "ok": true,
+    "detail": {
+      "session_id": "session-r2-partial-d9356fbd-6ec4-4263-b8d8-1e9250b49af1",
+      "trigger": "R-2",
+      "completion_state": "PARTIAL",
+      "cascade_scope": "FULL_CASCADE_TO_DESCENDANTS",
+      "revoked_sessions": [
+        "session-r2-partial-d9356fbd-6ec4-4263-b8d8-1e9250b49af1"
+      ],
+      "continuation_authority": "HUMAN_PRINCIPAL_MUST_REAUTHORIZE"
+    },
+    "timestamp": "2026-07-10T03:47:05.999Z"
+  },
+  {
+    "label": "R4-EDGE-01 irreversible threshold anticipatory -> CLEAN",
+    "ok": true,
+    "detail": {
+      "session_id": "session-r4-d5c1a928-4cbd-4df9-a997-c81fc8f14bfa",
+      "trigger": "R-4",
+      "completion_state": "CLEAN",
+      "cascade_scope": "FULL_CASCADE_TO_DESCENDANTS",
+      "revoked_sessions": [
+        "session-r4-d5c1a928-4cbd-4df9-a997-c81fc8f14bfa"
+      ],
+      "continuation_authority": "HUMAN_PRINCIPAL_MUST_REAUTHORIZE"
+    },
+    "timestamp": "2026-07-10T03:47:05.999Z"
+  },
+  {
+    "label": "R5-EDGE-01 scheduled rotation -> no cascade (Table 2)",
+    "ok": true,
+    "detail": {
+      "session_id": "session-r5-parent-fbbab1fd-b83d-4b74-8bbb-00a3d7ec493c",
+      "trigger": "R-5",
+      "completion_state": "CLEAN",
+      "cascade_scope": "NONE",
+      "revoked_sessions": [
+        "session-r5-parent-fbbab1fd-b83d-4b74-8bbb-00a3d7ec493c"
+      ],
+      "continuation_authority": "OPERATOR_MAY_REAUTHORIZE"
+    },
+    "timestamp": "2026-07-10T03:47:05.999Z"
+  },
+  {
+    "label": "R6-EDGE-01 operator override scoped THIS_MANDATE_ONLY -> child survives",
+    "ok": true,
+    "detail": {
+      "session_id": "session-r6-parent-717ba75d-0407-470f-9cfe-1b3425ffdeee",
+      "trigger": "R-6",
+      "completion_state": "CLEAN",
+      "cascade_scope": "OPERATOR_SPECIFIED",
+      "revoked_sessions": [
+        "session-r6-parent-717ba75d-0407-470f-9cfe-1b3425ffdeee"
+      ],
+      "continuation_authority": "OPERATOR_MAY_REAUTHORIZE"
+    },
+    "timestamp": "2026-07-10T03:47:06.000Z"
+  },
+  {
+    "label": "R7-HP-01 deadlock -> UNKNOWN for all participants",
+    "ok": true,
+    "detail": {
+      "resultA": {
+        "session_id": "session-r7-a-f9872afd-8383-49e0-b373-443705d3b9e5",
+        "trigger": "R-7",
+        "completion_state": "UNKNOWN",
+        "cascade_scope": "ALL_PARTICIPATING",
+        "revoked_sessions": [
+          "session-r7-a-f9872afd-8383-49e0-b373-443705d3b9e5"
+        ],
+        "continuation_authority": "HUMAN_PRINCIPAL_MUST_REAUTHORIZE"
+      },
+      "resultB": {
+        "session_id": "session-r7-b-91a88871-1f34-4438-97e0-e2fc450eb9d4",
+        "trigger": "R-7",
+        "completion_state": "UNKNOWN",
+        "cascade_scope": "ALL_PARTICIPATING",
+        "revoked_sessions": [
+          "session-r7-b-91a88871-1f34-4438-97e0-e2fc450eb9d4"
+        ],
+        "continuation_authority": "HUMAN_PRINCIPAL_MUST_REAUTHORIZE"
+      }
+    },
+    "timestamp": "2026-07-10T03:47:06.000Z"
+  },
+  {
+    "label": "R7-EDGE-01 deadlock_timeout -> auto-revoke under R-3",
+    "ok": true,
+    "detail": {
+      "session_id": "session-r7-a-f9872afd-8383-49e0-b373-443705d3b9e5",
+      "trigger": "R-3",
+      "completion_state": "UNKNOWN",
+      "cascade_scope": "SELECTIVE",
+      "revoked_sessions": [
+        "session-r7-a-f9872afd-8383-49e0-b373-443705d3b9e5"
+      ],
+      "continuation_authority": "OPERATOR_MAY_REAUTHORIZE"
+    },
+    "timestamp": "2026-07-10T03:47:06.000Z"
+  },
+  {
+    "label": "SACR-HP-02 ephemeral identity retirement (ALE-SPAWN-04)",
+    "ok": true,
+    "detail": {
+      "ephemeral_kia_ref": "2c727b54-2706-46a6-965c-5c16237f72cc"
+    },
+    "timestamp": "2026-07-10T03:47:06.000Z"
+  }
+]

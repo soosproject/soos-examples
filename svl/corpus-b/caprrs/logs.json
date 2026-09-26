@@ -1,0 +1,207 @@
+[
+  {
+    "id": "HP-CAPRRS-01",
+    "kind": "happy",
+    "scenario": "APPI Article 17 authority_source block — full LRI Generic Schema populated (Japan profile)",
+    "conformance_refs": [
+      "§9.2",
+      "§9.7"
+    ],
+    "outcome": "PASS",
+    "detail": "{\"authority_id\":\"https://www.ppc.go.jp/authority\",\"endorsed_at\":\"2025-06-04T01:33:17.499Z\",\"endorsement_scope\":\"purpose_limitation\",\"resolution_basis\":\"statute_clear\",\"co_endorsement_required\":false,\"endorsement_claim\":\"eyJhbGciOiJFZERTQSJ9.fake.sig\"}"
+  },
+  {
+    "id": "HP-CAPRRS-02",
+    "kind": "happy",
+    "scenario": "Japan LRI Profile defines all five normative requirements (LRI-1 through LRI-5)",
+    "conformance_refs": [
+      "§9.3"
+    ],
+    "outcome": "PASS",
+    "detail": "complete"
+  },
+  {
+    "id": "EDGE-CAPRRS-01",
+    "kind": "edge",
+    "scenario": "Incomplete LRI Profile correctly rejected",
+    "conformance_refs": [
+      "§9.3"
+    ],
+    "outcome": "DENY",
+    "deny_code": "LRI_REQUIREMENT_VIOLATION",
+    "detail": "§9.3: LRI Profile missing normative requirement(s): version_identifier_derivable"
+  },
+  {
+    "id": "EDGE-CAPRRS-02",
+    "kind": "edge",
+    "scenario": "interpretive_ruling without resolution_instrument_id correctly rejected",
+    "conformance_refs": [
+      "§9.4 Table 1"
+    ],
+    "outcome": "DENY",
+    "deny_code": "LRI_REQUIREMENT_VIOLATION",
+    "detail": "§9.4 Table 1: resolution_instrument_id MUST be populated when resolution_basis is interpretive_ruling"
+  },
+  {
+    "id": "EDGE-CAPRRS-03",
+    "kind": "edge",
+    "scenario": "cross_statute_coordination correctly requires co_endorsement_required + quorum all",
+    "conformance_refs": [
+      "§9.4 Table 1"
+    ],
+    "outcome": "DENY",
+    "deny_code": "LRI_REQUIREMENT_VIOLATION",
+    "detail": "§9.4 Table 1: cross_statute_coordination REQUIRES co_endorsement_required: true"
+  },
+  {
+    "id": "HP-CAPRRS-03",
+    "kind": "happy",
+    "scenario": "Disaster-response coordination: quorum 'all', both co-endorsers valid — policy may activate",
+    "conformance_refs": [
+      "§9.5",
+      "CONF-RRS-COEND-01"
+    ],
+    "outcome": "PASS",
+    "detail": "quorum met"
+  },
+  {
+    "id": "EDGE-CAPRRS-04",
+    "kind": "edge",
+    "scenario": "Incomplete co-endorsement quorum correctly blocks activation",
+    "conformance_refs": [
+      "CONF-RRS-COEND-01"
+    ],
+    "outcome": "DENY",
+    "deny_code": "CO_ENDORSEMENT_QUORUM_NOT_MET",
+    "detail": "CONF-RRS-COEND-01: co-endorser https://chino.lg.jp/authority has no valid endorsement_claim — quorum \"all\" not met, policy MUST NOT activate"
+  },
+  {
+    "id": "EDGE-CAPRRS-05",
+    "kind": "edge",
+    "scenario": "§9.5(d): one co-endorser's claim superseded — policy MUST suspend regardless of other co-endorsers' status",
+    "conformance_refs": [
+      "§9.5(d)"
+    ],
+    "outcome": "DENY",
+    "deny_code": "CO_ENDORSEMENT_QUORUM_NOT_MET",
+    "detail": "mustSuspend=true"
+  },
+  {
+    "id": "HP-CAPRRS-04",
+    "kind": "happy",
+    "scenario": "Phase 1 Detection: amendment posterior to endorsed_at found — CATALOG_VERSION_CONFLICT triggers",
+    "conformance_refs": [
+      "§10.1"
+    ],
+    "outcome": "PASS",
+    "detail": "{\"conflictDetected\":true,\"conflictingDate\":\"2026-06-29T01:33:17.499Z\"}"
+  },
+  {
+    "id": "HP-CAPRRS-05",
+    "kind": "happy",
+    "scenario": "Phase 2: CATALOG_VERSION_CONFLICT GAR event built with conflict_delta_days computed",
+    "conformance_refs": [
+      "§10.2"
+    ],
+    "outcome": "PASS",
+    "detail": "{\"event_type\":\"CATALOG_VERSION_CONFLICT\",\"catalog_entry_id\":\"cat-appi-17\",\"authority_source_profile\":\"https://laws.e-gov.go.jp/lri/v1\",\"authority_source_law_id\":\"325AC0000000089\",\"authority_source_article_ref\":\"/Law/LawBody/MainProvision/Article[@Num='17']\",\"endorsed_at\":\"2025-06-04T01:33:17.499Z\",\"conflicting_amendment_promulgation_date\":\"2026-06-29T01:33:17.499Z\",\"conflict_delta_days\":390,\"suspension_effective_at\":\"2026-07-09T01:33:17.499Z\",\"hem_escalation_id\":\"hem-caprrs-1\",\"resolution\":null}"
+  },
+  {
+    "id": "EDGE-CAPRRS-06",
+    "kind": "edge",
+    "scenario": "New SACR citing suspended entry correctly blocked",
+    "conformance_refs": [
+      "§10.1(1)"
+    ],
+    "outcome": "DENY",
+    "deny_code": "CATALOG_VERSION_REJECTED",
+    "detail": "§10.1(1): catalog entry cat-appi-17 is under provisional suspension — no new SACR may be issued citing it"
+  },
+  {
+    "id": "HP-CAPRRS-06",
+    "kind": "happy",
+    "scenario": "Phase 4 Re-activation: valid catalog_version update (correct supersedes chain + matching authority) accepted",
+    "conformance_refs": [
+      "§10.5"
+    ],
+    "outcome": "PASS",
+    "detail": "accepted"
+  },
+  {
+    "id": "EDGE-CAPRRS-07",
+    "kind": "edge",
+    "scenario": "Rollback attack correctly rejected",
+    "conformance_refs": [
+      "§10.5(c)"
+    ],
+    "outcome": "DENY",
+    "deny_code": "CATALOG_VERSION_REJECTED",
+    "detail": "§10.5(c): effective_date is earlier than the currently active effective_date — rollback attack defense triggered"
+  },
+  {
+    "id": "EDGE-CAPRRS-08",
+    "kind": "edge",
+    "scenario": "Mismatched supersedes chain correctly rejected",
+    "conformance_refs": [
+      "§10.5(b)"
+    ],
+    "outcome": "DENY",
+    "deny_code": "CATALOG_VERSION_REJECTED",
+    "detail": "§10.5(b): supersedes \"v-wrong\" does not match currently active version_id \"v1.0.0\""
+  },
+  {
+    "id": "HP-CAPRRS-07",
+    "kind": "happy",
+    "scenario": "Safe harbor: action taken while endorsed_at anterior to suspension_effective_at — protected from retroactive liability",
+    "conformance_refs": [
+      "§10.4"
+    ],
+    "outcome": "PASS",
+    "detail": "protected=true"
+  },
+  {
+    "id": "HP-CAPRRS-08",
+    "kind": "happy",
+    "scenario": "Amendment detection polled at exactly 24h — conforming (normative MUST, confirmed §11.1)",
+    "conformance_refs": [
+      "§11.1"
+    ],
+    "outcome": "PASS",
+    "detail": "max=24h"
+  },
+  {
+    "id": "EDGE-CAPRRS-09",
+    "kind": "edge",
+    "scenario": "Non-conforming 48h interpretation detection cadence correctly rejected",
+    "conformance_refs": [
+      "§11.2"
+    ],
+    "outcome": "DENY",
+    "deny_code": "LRI_REQUIREMENT_VIOLATION",
+    "detail": "§11.2: interpretation detection cadence 48h exceeds the 24h maximum"
+  },
+  {
+    "id": "EDGE-CAPRRS-10",
+    "kind": "edge",
+    "scenario": "Silent suspension drop blocked — matches CAP-04 §8.9.4's cross-referenced 30-day rule",
+    "conformance_refs": [
+      "§11.3",
+      "CAP-04 §8.9.4"
+    ],
+    "outcome": "DENY",
+    "deny_code": "SUSPENSION_WINDOW_EXCEEDED_SILENT_DROP",
+    "detail": "§11.3: 30-day maximum exceeded — GEC MUST notify operator + generate CRITICAL Audit Alert before converting SUSPENDED to DENY"
+  },
+  {
+    "id": "EDGE-CAPRRS-11",
+    "kind": "edge",
+    "scenario": "authority_source_uri / OTel attribute mismatch correctly flagged as PTD inconsistency",
+    "conformance_refs": [
+      "§11.4",
+      "CAP-04 §12a.6"
+    ],
+    "outcome": "DENY",
+    "deny_code": "AUTHORITY_SOURCE_URI_MISMATCH",
+    "detail": "§11.4: authority_source_uri \"https://elaws.e-gov.go.jp/document?lawid=415AC0000000057#/Law/LawBody/MainProvision/Article[@Num='17']\" does not match emitted soos.cap.authority_source_uri \"https://elaws.e-gov.go.jp/document?lawid=415AC0000000057#/Law/LawBody/MainProvision/Article[@Num='18']\" — PTD inconsistency per CAP-04 §12a.6"
+  }
+]

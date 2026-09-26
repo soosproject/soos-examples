@@ -1,0 +1,11 @@
+{
+  "scenario": "StandingPlanObject constructed with scope_constraints.delegation_depth = -3",
+  "expected": "Undefined — SOV-02 does not state a valid range for delegation_depth",
+  "actual": {
+    "accepted": true,
+    "delegation_depth": -3
+  },
+  "classification": "Type II — ambiguity",
+  "note": "A negative delegation depth is semantically nonsensical (delegation chains cannot have negative length), but nothing in the draft states a valid range, and the sample code accepted it without validation. Logged as SDB-04 (Type II ambiguity, low severity) — likely resolvable editorially in SOV-03 (e.g. \"delegation_depth MUST be a non-negative integer\") rather than requiring a Decision Record, since there is no plausible reading under which negative depth is meaningful.",
+  "sdb_entry": "SDB-04"
+}

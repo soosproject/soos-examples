@@ -1,0 +1,10 @@
+{
+  "scenario": "GOVERNANCE_SUSPENDED event appended with no provenance or escalation fields at all",
+  "expected_per_plan": "Mandatory provenance fields required?",
+  "actual": {
+    "threw": false
+  },
+  "classification": "Type II — gap",
+  "note": "append() currently enforces the three mandatory provenance fields ONLY for CEDAR_PERMIT / CEDAR_DENY (per MANDATORY_PROVENANCE check). GOVERNANCE_SUSPENDED — arguably the highest-severity ALE type — has no enforcement at all and was accepted with zero identifying fields. GAR-03 §13.3 (per the coding-assistant brief) only names CEDAR_PERMIT/CEDAR_DENY explicitly; the draft is silent on whether SUSPENDED needs its own mandatory field set (plausibly escalation_class + so_reference, mirroring HEM_ESCALATION). Logged as SDB-GAR-05 (Type II gap) — recommend GAR-04 specify provenance requirements for GOVERNANCE_SUSPENDED explicitly. TODO marker added in code pending that decision; no enforcement added yet since the correct field set is not yet defined.",
+  "sdb_entry": "SDB-GAR-05"
+}

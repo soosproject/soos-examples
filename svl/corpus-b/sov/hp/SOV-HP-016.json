@@ -1,0 +1,68 @@
+{
+  "scenario": "Mission Plan SO with SEQUENTIAL and PARALLEL edges",
+  "mission": {
+    "so_id": "019f2cc6-68fb-7aab-9cb3-750014470f60",
+    "steps": [
+      {
+        "step_id": "s1",
+        "description": "gather requirements"
+      },
+      {
+        "step_id": "s2",
+        "description": "book primary activity"
+      },
+      {
+        "step_id": "s3",
+        "description": "book alternate activity"
+      },
+      {
+        "step_id": "s4",
+        "description": "confirm itinerary"
+      }
+    ],
+    "edges": [
+      {
+        "from_step_id": "s1",
+        "to_step_id": "s2",
+        "edge_type": "SEQUENTIAL"
+      },
+      {
+        "from_step_id": "s1",
+        "to_step_id": "s3",
+        "edge_type": "PARALLEL"
+      },
+      {
+        "from_step_id": "s2",
+        "to_step_id": "s4",
+        "edge_type": "SEQUENTIAL"
+      },
+      {
+        "from_step_id": "s3",
+        "to_step_id": "s4",
+        "edge_type": "SEQUENTIAL"
+      }
+    ]
+  },
+  "events": [
+    {
+      "so_id": "019f2cc6-68fb-7aab-9cb3-750014470f60",
+      "event_type": "SO_CREATED",
+      "actor_id": "GEC",
+      "timestamp": "2026-07-04T10:57:08.347Z",
+      "kernel_id": "kernel-mission-3",
+      "payload": {
+        "so_type_id": "soos/mission-plan/1.0",
+        "current_state": "PLANNING",
+        "current_phase": "ACTIVE",
+        "parent_so_id": null
+      },
+      "entry_id": "019f2cc6-68fb-7b71-b7a7-ad5f72064223",
+      "prior_event_id": null,
+      "gec_signature": "9b906c45c236725f408941d5632b5e2e7a2929f7fdeba0053abdf875c60a50f8c74c10a1877b14ca3e5ebc513b55dfc17dfb59611e9ee20c9587c2ad07a5ab01"
+    }
+  ],
+  "dag_check": {
+    "sequential_edge_count": 3,
+    "parallel_edge_count": 1
+  }
+}

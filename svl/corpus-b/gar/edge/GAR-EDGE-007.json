@@ -1,0 +1,18 @@
+{
+  "scenario": "prev_span_hash field of entry index 1 modified directly (not the decision field)",
+  "expected_per_plan": "Should detect",
+  "actual": {
+    "before": {
+      "valid": true,
+      "failedAt": null
+    },
+    "after": {
+      "valid": false,
+      "failedAt": 1
+    },
+    "corrupted_index": 1,
+    "original_hash_prefix": "83b6404d3c44f134"
+  },
+  "classification": "Confirmed correct — not a new finding",
+  "note": "Detected immediately: verifyChain() checks e.prev_span_hash !== prev as the FIRST check in the loop, before even reaching the own_span_hash recomputation, so this fails at exactly the tampered index (1). Two independent detection paths (link-field check, then content-hash check) both guard the chain — this redundancy is a strength, not a gap."
+}

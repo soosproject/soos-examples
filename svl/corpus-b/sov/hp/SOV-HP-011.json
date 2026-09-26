@@ -1,0 +1,55 @@
+{
+  "scenario": "SPO creation and activation",
+  "spo": {
+    "so_id": "019f2cc6-68f7-7180-a59a-31f4c297d76d",
+    "so_type_id": "soos/standing-plan-object/1.0",
+    "active": true,
+    "scope_constraints": {
+      "geographic": [
+        "JP"
+      ],
+      "agent_role": [
+        "booking-agent"
+      ],
+      "delegation_depth": 2
+    },
+    "cedar_bundle_ref": "cedar://bundle/spo-1"
+  },
+  "events": [
+    {
+      "so_id": "019f2cc6-68f7-7180-a59a-31f4c297d76d",
+      "event_type": "SO_CREATED",
+      "actor_id": "GEC",
+      "timestamp": "2026-07-04T10:57:08.344Z",
+      "kernel_id": "kernel-spo-1",
+      "payload": {
+        "so_type_id": "soos/standing-plan-object/1.0",
+        "current_state": "DRAFT",
+        "current_phase": "ACTIVE",
+        "parent_so_id": null
+      },
+      "entry_id": "019f2cc6-68f8-7469-8034-5b50f06f3771",
+      "prior_event_id": null,
+      "gec_signature": "0ded1ec0078be3ab14e5b2ceb2741336dda4aebd83674c7dd19da859481178f56d25962975f3f0d20539c9204eafb74fa195a43f1390d23049f548634702f10d"
+    },
+    {
+      "so_id": "019f2cc6-68f7-7180-a59a-31f4c297d76d",
+      "event_type": "STATE_TRANSITION",
+      "actor_id": "GEC",
+      "timestamp": "2026-07-04T10:57:08.344Z",
+      "kernel_id": "kernel-spo-1",
+      "payload": {
+        "from_state": "DRAFT",
+        "to_state": "ACTIVE_STANDING",
+        "current_phase": "ACTIVE"
+      },
+      "entry_id": "019f2cc6-68f8-7913-9ef2-ad2196ab2cd1",
+      "prior_event_id": "019f2cc6-68f8-7469-8034-5b50f06f3771",
+      "gec_signature": "b1f6b50580c1dec2474ee2fa7190f7ed0f7d2daa914be8379b0456e1aedc9a8d33bf77e0704af2f8f81511f85308cd55f5e942ed6386c2cc1be3f8e559464005"
+    }
+  ],
+  "activation_check": {
+    "active_flag_true": true,
+    "activation_event_type": "STATE_TRANSITION"
+  }
+}

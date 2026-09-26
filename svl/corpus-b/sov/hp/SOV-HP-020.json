@@ -1,0 +1,13 @@
+{
+  "scenario": "Mission Status SO GEC-exclusive (agent write -> reject)",
+  "mission_status_so_id": "019f2cc6-68fc-72e0-9337-1a61fbeca299",
+  "agent_write_result": {
+    "threw": true,
+    "errorMessage": "MissionStatusSO write rejected: '019f2cc6-68fc-72e0-9337-1a61fbeca299' is GEC-exclusive — agent-authored direct writes are forbidden (SOV §Mission Status SO)"
+  },
+  "gec_write_result": {
+    "step_states": {
+      "s1": "IN_PROGRESS"
+    }
+  }
+}

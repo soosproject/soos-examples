@@ -1,0 +1,12 @@
+{
+  "scenario": "1000-entry session — append all, then verifyChain()",
+  "expected_per_plan": "Performance baseline — completes in <1s",
+  "actual": {
+    "entry_count": 1000,
+    "append_ms": 9,
+    "verify_ms": 5,
+    "chain_valid": true
+  },
+  "classification": "Confirmed within baseline — not a new finding",
+  "note": "Append: 9ms, verifyChain: 5ms for 1000 entries — well under the 1s baseline. In-memory array + per-entry SHA-256 scales linearly as expected for the sample-code Layer 1 implementation; not representative of production persistence-layer performance (see \"What Sample Code Does Not Give You\" table in the plan)."
+}

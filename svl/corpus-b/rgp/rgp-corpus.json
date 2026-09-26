@@ -1,0 +1,92 @@
+[
+  {
+    "label": "RGP-HP-01 Stage 1 fingerprint query",
+    "ok": true,
+    "detail": {
+      "resource_id": "atp://demo/lzsidlqoza",
+      "capability_class": "CAP-EXP",
+      "trust_level": "TRUST-2",
+      "availability_status": "AVAILABLE",
+      "valid_until": "2026-07-14T08:43:51.040Z"
+    },
+    "timestamp": "2026-07-14T07:43:51.040Z"
+  },
+  {
+    "label": "RGP-EDGE-01 expired fingerprint rejected",
+    "ok": true,
+    "detail": "Stage 1 fingerprint for atp://demo/du8nz3to1xj expired at 2026-07-14T06:43:51.040Z — re-query required (§8.4)",
+    "timestamp": "2026-07-14T07:43:51.040Z"
+  },
+  {
+    "label": "RGP-EDGE-02 unregistered resource -> 404",
+    "ok": true,
+    "detail": "resource atp://nonexistent/resource does not support RGP (404) — treat as TRUST-3",
+    "timestamp": "2026-07-14T07:43:51.040Z"
+  },
+  {
+    "label": "RGP-HP-02 validation all 5 steps pass",
+    "ok": true,
+    "detail": {
+      "ok": true
+    },
+    "timestamp": "2026-07-14T07:43:51.041Z"
+  },
+  {
+    "label": "RGP-EDGE-03 Step 1 capability_class out of scope",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "failedStep": 1,
+      "reason": "capability_class CAP-FAB not in mandate Resource Envelope scope"
+    },
+    "timestamp": "2026-07-14T07:43:51.041Z"
+  },
+  {
+    "label": "RGP-EDGE-04 Step 2 trust_level insufficient",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "failedStep": 2,
+      "reason": "trust_level TRUST-3 below required minimum TRUST-2"
+    },
+    "timestamp": "2026-07-14T07:43:51.041Z"
+  },
+  {
+    "label": "RGP-EDGE-05 Step 3 budget exceeded",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "failedStep": 3,
+      "reason": "unit_cost 999999 exceeds remaining budget 5000"
+    },
+    "timestamp": "2026-07-14T07:43:51.041Z"
+  },
+  {
+    "label": "RGP-EDGE-06 Step 4 compliance framework not allowed",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "failedStep": 4,
+      "reason": "data_protection_framework CCPA not in allowed set"
+    },
+    "timestamp": "2026-07-14T07:43:51.041Z"
+  },
+  {
+    "label": "RGP-EDGE-07 Step 5 availability not AVAILABLE",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "failedStep": 5,
+      "reason": "availability_status is AT_CAPACITY, not AVAILABLE"
+    },
+    "timestamp": "2026-07-14T07:43:51.041Z"
+  },
+  {
+    "label": "RGP-HP-03 TRUST-0 meets any minimum trust requirement",
+    "ok": true,
+    "detail": {
+      "ok": true
+    },
+    "timestamp": "2026-07-14T07:43:51.041Z"
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "scenario": "STATE_TRANSITION appended as the first-ever entry for a so_id, with no prior SO_CREATED",
+  "expected": "Reject — SOV-02 requires prior_event_id null ONLY for SO_CREATED, implying SO_CREATED must be first",
+  "actual": {
+    "threw": true,
+    "errorMessage": "EventStream append rejected: first entry for so_id 'orphan-so-1' must be SO_CREATED (got 'STATE_TRANSITION')"
+  },
+  "classification": "Confirmed correct — not a new finding",
+  "note": "EventStream.append() explicitly checks: if no prior event exists for this so_id, the entry MUST be SO_CREATED, else it throws. Matches the schema table's stated invariant that prior_event_id is null ONLY for SO_CREATED."
+}

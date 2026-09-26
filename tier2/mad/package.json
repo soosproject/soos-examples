@@ -1,0 +1,18 @@
+{
+  "name": "soos-mad-sample",
+  "version": "0.1.0",
+  "description": "SOOS Step 11 — Multi-Agent Delegation (MAD) sample implementation, draft-sato-soos-mad-03. Integrates real Step 1 (GAR) and Step 6 (KIA) modules.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p .",
+    "demo": "tsc -p . && node dist/src/demo.js",
+    "corpus": "tsc -p . && node dist/src/gen-corpus.js"
+  },
+  "dependencies": {
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "@types/node": "^20.14.0"
+  }
+}

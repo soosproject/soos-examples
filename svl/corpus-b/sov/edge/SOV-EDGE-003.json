@@ -1,0 +1,11 @@
+{
+  "scenario": "SO_CREATED appended a second time for a so_id that already has one",
+  "expected": "Reject — SO_CREATED must be unique per so_id (it is the causal root)",
+  "actual": {
+    "threw": true,
+    "errorMessage": "EventStream append rejected: SO_CREATED must be the first entry for so_id 'duplicate-create-so-1', but 1 entries already exist",
+    "entries_for_so": 1
+  },
+  "classification": "Confirmed correct — not a new finding",
+  "note": "append() checks the inverse condition too: if a prior event already exists, a new SO_CREATED is rejected. Both halves of the causal-root invariant are enforced."
+}

@@ -1,0 +1,49 @@
+{
+  "scenario": "SO with parent reference",
+  "parent_so": {
+    "so_id": "019f2cc6-68f4-7e5f-9ac5-d2ce88d8845d",
+    "so_type_id": "atp/mission-object/1.0"
+  },
+  "child_so": {
+    "so_id": "019f2cc6-68f4-78d9-bcd4-fa33a430ca41",
+    "so_type_id": "atp/booking-object/1.0",
+    "parent_so_id": "019f2cc6-68f4-7e5f-9ac5-d2ce88d8845d"
+  },
+  "parent_reference_check": {
+    "child_parent_so_id_matches": true
+  },
+  "events": [
+    {
+      "so_id": "019f2cc6-68f4-7e5f-9ac5-d2ce88d8845d",
+      "event_type": "SO_CREATED",
+      "actor_id": "GEC",
+      "timestamp": "2026-07-04T10:57:08.340Z",
+      "kernel_id": "kernel-parent-3",
+      "payload": {
+        "so_type_id": "atp/mission-object/1.0",
+        "current_state": "ACTIVE_ROOT",
+        "current_phase": "ACTIVE",
+        "parent_so_id": null
+      },
+      "entry_id": "019f2cc6-68f4-74b2-b0cf-c3bd1ee0a4c3",
+      "prior_event_id": null,
+      "gec_signature": "75b1499e2da89a7fbfbdccc8802a6ce633123fb05acfccb50dbc9da2c160d236f18a09d465d655c7e35858374b7fd858b54a039b0dd266d38da8b6063d586f0d"
+    },
+    {
+      "so_id": "019f2cc6-68f4-78d9-bcd4-fa33a430ca41",
+      "event_type": "SO_CREATED",
+      "actor_id": "GEC",
+      "timestamp": "2026-07-04T10:57:08.340Z",
+      "kernel_id": "kernel-child-3",
+      "payload": {
+        "so_type_id": "atp/booking-object/1.0",
+        "current_state": "CONFIRMED",
+        "current_phase": "ACTIVE",
+        "parent_so_id": "019f2cc6-68f4-7e5f-9ac5-d2ce88d8845d"
+      },
+      "entry_id": "019f2cc6-68f4-77ef-b31d-3ea45d9930f6",
+      "prior_event_id": null,
+      "gec_signature": "abe130737875343bfb76aa539e52822d40e31d27f3ccd89a511cf06c752dc037fb2fb5ea5870f1403856fef7064e69410d65578ead189ccdf42f52fcf770db00"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "session_id": "hp-deny-5-44067e8d",
+  "entries": [
+    {
+      "entry_id": "509c7c2b-53b7-4f88-8cc5-4e0189620e2d",
+      "ale_type": "SESSION_START",
+      "session_id": "hp-deny-5-44067e8d",
+      "actor_id": "agent-2",
+      "timestamp": "2026-07-04T09:13:58.612Z",
+      "causal_parent_id": null,
+      "decision": "PERMIT",
+      "kernel_id": "kernel-deny-5",
+      "cap_profile_hash": "caphash-deny-5",
+      "prev_span_hash": "GENESIS",
+      "own_span_hash": "fe4410ad7434a89d50a1da7ec0eb2d97326062bdb39d542548f7d3f9d53e62ef"
+    },
+    {
+      "entry_id": "2ab75e96-8257-41e8-b4aa-e273f45317d3",
+      "ale_type": "CEDAR_PERMIT",
+      "session_id": "hp-deny-5-44067e8d",
+      "actor_id": "agent-2",
+      "timestamp": "2026-07-04T09:13:59.613Z",
+      "causal_parent_id": "509c7c2b-53b7-4f88-8cc5-4e0189620e2d",
+      "decision": "PERMIT",
+      "kernel_id": "kernel-deny-5",
+      "cap_profile_hash": "caphash-deny-5",
+      "cedar_policy_id": "policy-deny-5-a",
+      "cap_rrs_control_id": "ctrl-deny-5-a",
+      "authority_source_uri": "https://law.example/deny-5-a",
+      "tier": "Tier1",
+      "conflict_detected": false,
+      "prev_span_hash": "fe4410ad7434a89d50a1da7ec0eb2d97326062bdb39d542548f7d3f9d53e62ef",
+      "own_span_hash": "34d1b2ca1c3e02d7ff2d14e63c02cc7085b8d0fbcc019ea5a86c56ed6b51f2ae"
+    },
+    {
+      "entry_id": "3d218f73-9731-47e1-bb25-455439ca4fdf",
+      "ale_type": "CEDAR_DENY",
+      "session_id": "hp-deny-5-44067e8d",
+      "actor_id": "agent-2",
+      "timestamp": "2026-07-04T09:14:00.613Z",
+      "causal_parent_id": "2ab75e96-8257-41e8-b4aa-e273f45317d3",
+      "decision": "DENY",
+      "kernel_id": "kernel-deny-5",
+      "cap_profile_hash": "caphash-deny-5",
+      "cedar_policy_id": "policy-deny-5-b",
+      "cap_rrs_control_id": "ctrl-deny-5-b",
+      "authority_source_uri": "https://law.example/deny-5-b",
+      "tier": "Tier0",
+      "conflict_detected": false,
+      "prev_span_hash": "34d1b2ca1c3e02d7ff2d14e63c02cc7085b8d0fbcc019ea5a86c56ed6b51f2ae",
+      "own_span_hash": "e373bc898a10ec5fe2fe5a7e99f64d88530ac6f16c48919c1316e68cf71ea32b"
+    },
+    {
+      "entry_id": "9fffec8a-ea8c-4f06-8b70-3361761c2376",
+      "ale_type": "SESSION_END",
+      "session_id": "hp-deny-5-44067e8d",
+      "actor_id": "agent-2",
+      "timestamp": "2026-07-04T09:14:01.613Z",
+      "causal_parent_id": "3d218f73-9731-47e1-bb25-455439ca4fdf",
+      "decision": "DENY",
+      "kernel_id": "kernel-deny-5",
+      "cap_profile_hash": "caphash-deny-5",
+      "prev_span_hash": "e373bc898a10ec5fe2fe5a7e99f64d88530ac6f16c48919c1316e68cf71ea32b",
+      "own_span_hash": "792ab41b4f882c9f053f118a939fcb91e9b32de7813a71552bc35c6dbcb4fc1a"
+    }
+  ],
+  "chain_verification": {
+    "valid": true,
+    "failedAt": null
+  }
+}

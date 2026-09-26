@@ -1,0 +1,10 @@
+{
+  "scenario": "getForSO() called for a so_id that was never appended to the stream",
+  "expected": "Empty array, no error (analogous to GAR-EDGE-001 vacuous case)",
+  "actual": {
+    "length": 0,
+    "value": []
+  },
+  "classification": "Confirmed correct — not a new finding",
+  "note": "Array.filter() over an empty backing array returns [] naturally; no special-casing needed. Consistent with the GAR precedent (GAR-EDGE-001) of vacuous-empty being an acceptable default absent contrary spec guidance."
+}

@@ -1,0 +1,25 @@
+{
+  "draft": "draft-sato-soos-pt-02",
+  "corpus": "B",
+  "phase": "SVL Phase B — edge / adversarial",
+  "generated": "2026-07-08",
+  "logs": [
+    { "id": "E-01", "scenario": "Elevation blocked — low_confidence true", "description": "All five dimensions >= ELEVATION_THRESHOLD but session_count 15 < 20 for one dimension — low_confidence true, MUST NOT issue elevation recommendation (§8.2(b))." },
+    { "id": "E-02", "scenario": "Elevation blocked — DECLINING trend on one dimension", "description": "Four dimensions eligible, PS trend DECLINING — MUST NOT issue elevation recommendation even though PS score itself is still above threshold (§8.2(c))." },
+    { "id": "E-03", "scenario": "Elevation blocked — STRONGLY NEGATIVE signal in last 30 days", "description": "All thresholds met, but a KERNEL_REJECTED closure occurred 12 days ago — MUST NOT issue elevation recommendation (§8.2(d))." },
+    { "id": "E-04", "scenario": "Reduction — dimension below REDUCTION_THRESHOLD", "description": "PS score drops below REDUCTION_THRESHOLD due to a run of compensating actions — PT_RECOMMENDATION_ISSUED (REDUCTION)." },
+    { "id": "E-05", "scenario": "Reduction — STRONGLY NEGATIVE signal triggers immediate reduction", "description": "MANDATE_REVOKED closure — reduction recommendation regardless of composite score, urgency REQUIRED." },
+    { "id": "E-06", "scenario": "Reduction urgency REQUIRED — human approval mandatory despite auto_apply config", "description": "auto_apply configured true, but urgency REQUIRED (HEM_TIMEOUT at REQUIRED urgency) — human principal approval still mandatory per §8.3, operator config cannot override this." },
+    { "id": "E-07", "scenario": "Reduction urgency ADVISORY — auto-applied", "description": "Composite crosses DECAY_REDUCTION_THRESHOLD from decay alone (no STRONGLY NEGATIVE signal), urgency ADVISORY, operator has auto_apply:true — PT_RECOMMENDATION_APPLIED with applying_principal GEC_AUTO_APPLY, triggers cascade revocation of Child Mandates." },
+    { "id": "E-08", "scenario": "GEC autonomous elevation — conformance failure", "description": "Adversarial: a GEC implementation attempts to apply an ELEVATION recommendation without a recorded human principal Ed25519 signature — MUST be treated as a conformance failure (§8.4), not configurable." },
+    { "id": "E-09", "scenario": "Decay does not cross baseline floor", "description": "180-day inactivity gap on a dimension with half-life 30 days (6 half-lives) — decay asymptotically approaches but MUST NOT go below PT Baseline 0.5 (§6.2(b))." },
+    { "id": "E-10", "scenario": "Decay is monotone — no signal means no increase", "description": "Two consecutive decay computations with no new signal in between — second computation's score MUST NOT exceed the first (§6.2(a))." },
+    { "id": "E-11", "scenario": "Decay symmetry — below-baseline dimension decays upward", "description": "A dimension currently below PT Baseline (e.g. 0.35 after a bad stretch) with no new signals decays toward 0.5, not toward 0.0 (§6.2(e))." },
+    { "id": "E-12", "scenario": "Signal reset on new signal", "description": "A dimension mid-decay receives a new signal — last_signal_at resets and decay clock restarts from the post-signal score, not the pre-decay peak (§6.2(d))." },
+    { "id": "E-13", "scenario": "Mandate issuance surfacing required — decayed PT Record", "description": "A PT Dimension score is 0.25 below its peak due to decay — GEC MUST surface decay state to human principal at mandate issuance time, even if score is still above REDUCTION_THRESHOLD (§6.4)." },
+    { "id": "E-14", "scenario": "AS neutral — RETRY_CONTINUATION with new deny_code", "description": "RETRY_CONTINUATION submitted, DENY repeated but with a different deny_code — NEUTRAL, agent tried and hit a new obstacle, not a failure to adapt." },
+    { "id": "E-15", "scenario": "SDB-PT-01 marker — decay formula underspecified", "description": "Draft §6.2 gives four bounding properties (monotone, floor, >=50% half-life reduction, signal reset) but no exact formula. Appendix A's illustrative decay values match a standard exponential-to-baseline formula for JS only, not ES/PS/AS — confirming those figures are illustrative, not a conformance vector. Logged as SDB-PT-01; sample implements standard exponential decay to satisfy all four properties exactly." },
+    { "id": "E-16", "scenario": "SDB-PT-02 marker — qualitative signal aggregation underspecified", "description": "SAS/JS/ES/AS are defined by qualitative signal category tables (STRONGLY POSITIVE...STRONGLY NEGATIVE), not an exact numeric formula, unlike PS which has an explicit CAR_score formula. Logged as SDB-PT-02; sample implements a signal-weight-to-[0,1] mapping." },
+    { "id": "E-17", "scenario": "SDB-PT-03 marker — threshold defaults not stated", "description": "ELEVATION_THRESHOLD, REDUCTION_THRESHOLD, DECAY_REDUCTION_THRESHOLD are operator-configured per the draft with no stated default (unlike CAR_threshold=0.05 or PT Baseline=0.5, both of which have defaults). Logged as SDB-PT-03; sample uses illustrative defaults clearly marked as non-normative." }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "scenario": "Session Block Merkle root computed twice: once over all 4 entries, once with entry index 2 dropped",
+  "expected_per_plan": "Merkle root mismatch",
+  "actual": {
+    "full_merkle_root": "3a3850879d75dc0900987eb22afd55b95c9779f6244b1ac66334e04110ed037b",
+    "partial_merkle_root": "a72ff757a3ea724fb3487227a8a6c424cba8a5060da74c6f994ee1368031ae08",
+    "roots_differ": true
+  },
+  "classification": "Confirmed correct — not a new finding",
+  "note": "Merkle roots differ as expected — closeSessionBlock() takes the entries array as-is and hashes each as a leaf, so a dropped entry produces a different tree deterministically. One open question worth flagging as SDB-GAR-04 (non-blocking, Type II gap): GAR-03 does not specify who is responsible for verifying a received Session Block's merkle_root against an independently-held copy of the entries — closeSessionBlock() itself has no verification counterpart (only construction). A verifySessionBlock(block, entries) function may be needed for a receiving party to detect this class of tampering, analogous to verifyChain() for the span-level chain.",
+  "sdb_entry": "SDB-GAR-04"
+}

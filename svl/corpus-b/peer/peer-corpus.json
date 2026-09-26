@@ -1,0 +1,177 @@
+[
+  {
+    "label": "PEER-HP-01 successful exchange, no ACD gate",
+    "ok": true,
+    "detail": {
+      "ok": true,
+      "ptr": {
+        "ptxn_id": "b84e4b3c-9f1a-55a4-9326-bb89fbf44d22",
+        "initiating_principal_kia": "kia:initiator:a11fe2f2-c10e-4ce4-92a4-a190f6949ea5",
+        "responding_principal_kia": "kia:responder:e7e8c847-724f-4788-8e48-6cfd7fb44c58",
+        "initiated_at": "2026-07-14T09:19:51.017Z",
+        "initiating_nonce": "9458d1f586dd",
+        "responding_nonce": "dc2c860866f0",
+        "rgp_resource_id": "atp://demo/12567b5b-ef70-4daf-ae1b-c75e92fb67cc",
+        "transaction_class": "API_CALL"
+      }
+    },
+    "timestamp": "2026-07-14T09:19:51.022Z"
+  },
+  {
+    "label": "PEER-HP-02 successful exchange with ACD gate -> acd_session_id present",
+    "ok": true,
+    "detail": {
+      "ok": true,
+      "ptr": {
+        "ptxn_id": "f9ae57bd-536a-5984-9ae8-f3c012f70f05",
+        "initiating_principal_kia": "kia:initiator:768931bc-cf9a-4bdc-a291-c39fef53a349",
+        "responding_principal_kia": "kia:responder:96becbab-65d8-42f1-827a-c7bf099c045f",
+        "initiated_at": "2026-07-14T09:19:51.022Z",
+        "initiating_nonce": "7b17f4b9ea60",
+        "responding_nonce": "cf76f27699b2",
+        "rgp_resource_id": "atp://demo/23ed0c3b-cc68-47be-bcba-efaa5543e1f6",
+        "acd_session_id": "e723519c-1b57-4d01-a854-17549da50466",
+        "transaction_class": "BOOKING_REQUEST"
+      }
+    },
+    "timestamp": "2026-07-14T09:19:51.023Z"
+  },
+  {
+    "label": "PEER-HP-03 ptxn_id correlates across both independent GAR chains",
+    "ok": true,
+    "detail": {
+      "aHas": true,
+      "bHas": true,
+      "ptxn_id": "1fa7043d-27a7-50be-818e-b8092ca06dc7"
+    },
+    "timestamp": "2026-07-14T09:19:51.023Z"
+  },
+  {
+    "label": "PEER-EDGE-01 attestation failure — Initiating rejects unknown Responding KIA",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "failedAt": "ATTESTATION",
+      "reason": "Initiating GEC rejected kia:stranger:x"
+    },
+    "timestamp": "2026-07-14T09:19:51.023Z"
+  },
+  {
+    "label": "PEER-EDGE-02 attestation failure — Responding rejects unknown Initiating KIA",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "failedAt": "ATTESTATION",
+      "reason": "Responding GEC rejected kia:stranger:y"
+    },
+    "timestamp": "2026-07-14T09:19:51.023Z"
+  },
+  {
+    "label": "PEER-EDGE-03 RGP Gate 1 failure — no covering capability class",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "failedAt": "RGP_GATE",
+      "reason": "Responding Agent declares CAP-EXP, not a covering capability class for CAP-TXN — transaction MUST NOT proceed (§4.3 Gate 1)"
+    },
+    "timestamp": "2026-07-14T09:19:51.023Z"
+  },
+  {
+    "label": "PEER-EDGE-04 RGP Gate 1 failure — resource not registered",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "failedAt": "RGP_GATE",
+      "reason": "resource atp://never-registered/x does not support RGP (404) — treat as TRUST-3"
+    },
+    "timestamp": "2026-07-14T09:19:51.024Z"
+  },
+  {
+    "label": "PEER-EDGE-05 ACD gate required but not supplied -> fails closed",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "failedAt": "ACD_GATE",
+      "reason": "Responding Agent is a regulated provider (acd_required) but no ACD gate parameters were supplied"
+    },
+    "timestamp": "2026-07-14T09:19:51.024Z"
+  },
+  {
+    "label": "PEER-EDGE-06 ACD four-check failure propagates as Gate 2 failure",
+    "ok": true,
+    "detail": {
+      "ok": false,
+      "failedAt": "ACD_GATE",
+      "reason": "ACD four-check sequence failed at check 3"
+    },
+    "timestamp": "2026-07-14T09:19:51.024Z"
+  },
+  {
+    "label": "PEER-HP-04 ptxn_id derivation is deterministic",
+    "ok": true,
+    "detail": {
+      "id1": "b0882661-e949-53f4-b13d-96dd3cb90e0e",
+      "id2": "b0882661-e949-53f4-b13d-96dd3cb90e0e"
+    },
+    "timestamp": "2026-07-14T09:19:51.024Z"
+  },
+  {
+    "label": "PEER-EDGE-07 ptxn_id unforgeable without the real responding_nonce",
+    "ok": true,
+    "detail": {
+      "id1": "b0882661-e949-53f4-b13d-96dd3cb90e0e",
+      "id2": "1eaa3705-58cc-5c3f-80bb-1f2d0a7cf8e1"
+    },
+    "timestamp": "2026-07-14T09:19:51.024Z"
+  },
+  {
+    "label": "PEER-HP-06 ptxn_id matches KEE-1 §10 reference implementation exactly (independent cross-check)",
+    "ok": true,
+    "detail": {
+      "expected": "c3ba1542-50a9-511f-9ea2-5579c52c5254",
+      "actual": "c3ba1542-50a9-511f-9ea2-5579c52c5254"
+    },
+    "timestamp": "2026-07-14T09:19:51.041Z"
+  },
+  {
+    "label": "PEER-EDGE-08 nonce replayed from a prior successful handshake is rejected (§8.3)",
+    "ok": true,
+    "detail": {
+      "first": true,
+      "second": {
+        "ok": false,
+        "failedAt": "ATTESTATION",
+        "reason": "initiating_nonce replay detected"
+      }
+    },
+    "timestamp": "2026-07-14T09:19:51.041Z"
+  },
+  {
+    "label": "PEER-HP-07 a failed handshake does not burn its nonces — legitimate retry succeeds",
+    "ok": true,
+    "detail": {
+      "failedAttempt": false,
+      "retry": true
+    },
+    "timestamp": "2026-07-14T09:19:51.042Z"
+  },
+  {
+    "label": "PEER-HP-05 responding_gec_countersignature included for regulatory deployment",
+    "ok": true,
+    "detail": {
+      "ok": true,
+      "ptr": {
+        "ptxn_id": "af08bc72-c69c-58e1-b38b-f18d04a76cfa",
+        "initiating_principal_kia": "kia:initiator:4e4c33b4-f7f9-4e8d-b329-c256c35b9d68",
+        "responding_principal_kia": "kia:responder:5706ee6c-4b5d-4ae3-9ab2-f09ccd3dc620",
+        "initiated_at": "2026-07-14T09:19:51.042Z",
+        "initiating_nonce": "5705d8dda12d",
+        "responding_nonce": "eb7c99d3fed0",
+        "responding_gec_countersignature": "ed25519-stub-sig:af08bc72-c69c-58e1-b38b-f18d04a76cfa",
+        "rgp_resource_id": "atp://demo/385b9161-f034-4d15-a1ec-899260607f8b",
+        "transaction_class": "SETTLEMENT"
+      }
+    },
+    "timestamp": "2026-07-14T09:19:51.042Z"
+  }
+]

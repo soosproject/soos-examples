@@ -1,0 +1,15 @@
+{
+  "scenario": "Two entries share an identical ISO 8601 timestamp",
+  "expected_per_plan": "Accept or reject — spec says?",
+  "actual": {
+    "e1_own_hash": "56f511ef94d349cade40ecb3b16967f61b136a842d1f0b5766fd1701514e3726",
+    "e2_own_hash": "bc4048ebd85dca162846480db728b74498d34ea1ab39d749bcf0b7626d5bd206",
+    "hashes_distinct": true,
+    "chain_verification": {
+      "valid": true,
+      "failedAt": null
+    }
+  },
+  "classification": "Type I",
+  "note": "Accepted silently, and correctly so: entry ordering and chain integrity are driven entirely by append() call order and causal_parent_id, not by timestamp uniqueness. Because computePrevSpanHash() includes each entry's own decision/kernel_id/etc plus the running prev_span_hash, two entries with identical timestamps still produce distinct own_span_hash values (confirmed above) and the chain still verifies clean. Draft is silent on timestamp uniqueness, but no ambiguity actually exists in the sample implementation — this is normative text absent, but no code decision was needed. Code comment added clarifying timestamp is descriptive metadata, not an ordering key."
+}

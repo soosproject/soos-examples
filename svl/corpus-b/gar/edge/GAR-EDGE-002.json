@@ -1,0 +1,13 @@
+{
+  "scenario": "Single entry — no predecessor. What does prev_span_hash contain?",
+  "expected_per_plan": "Resolved by SDB-GAR-01 — GENESIS sentinel",
+  "actual": {
+    "prev_span_hash": "GENESIS",
+    "verify": {
+      "valid": true,
+      "failedAt": null
+    }
+  },
+  "classification": "Resolved — not a new finding",
+  "note": "Confirms SDB-GAR-01 resolution (svl/issue-log.md ISSUE-001) is correctly implemented: first entry in a session carries prev_span_hash === 'GENESIS', and verifyChain() treats 'GENESIS' as the expected initial value. No new issue."
+}

@@ -1,0 +1,60 @@
+{
+  "scenario": "SO state transition (GEC-mediated)",
+  "so": {
+    "so_id": "019f2cc6-68f4-75a6-9e65-4566808e49da",
+    "final_state": "COMPLETED",
+    "final_phase": "OPERATIONALLY_COMPLETE"
+  },
+  "events": [
+    {
+      "so_id": "019f2cc6-68f4-75a6-9e65-4566808e49da",
+      "event_type": "SO_CREATED",
+      "actor_id": "GEC",
+      "timestamp": "2026-07-04T10:57:08.340Z",
+      "kernel_id": "kernel-trans-1",
+      "payload": {
+        "so_type_id": "atp/booking-object/1.0",
+        "current_state": "CONFIRMED",
+        "current_phase": "ACTIVE",
+        "parent_so_id": null
+      },
+      "entry_id": "019f2cc6-68f4-7c99-9826-282c3ab63c05",
+      "prior_event_id": null,
+      "gec_signature": "1a29ef3078719428783f3addb533787ec58c69e00802778baef291a289b892f33a5eb21f26a974c75ef5f24fe3815ff9ebedc1f74675709d15f60c6df32b0c05"
+    },
+    {
+      "so_id": "019f2cc6-68f4-75a6-9e65-4566808e49da",
+      "event_type": "STATE_TRANSITION",
+      "actor_id": "GEC",
+      "timestamp": "2026-07-04T10:57:08.341Z",
+      "kernel_id": "kernel-trans-1",
+      "payload": {
+        "from_state": "CONFIRMED",
+        "to_state": "IN_JOURNEY",
+        "current_phase": "ACTIVE"
+      },
+      "entry_id": "019f2cc6-68f5-70fa-b2bf-6307108c94aa",
+      "prior_event_id": "019f2cc6-68f4-7c99-9826-282c3ab63c05",
+      "gec_signature": "097880397b1097e3062694f0daf7311278d94f104527c007491fc6468306ecde919a209deaea6c221b3ca1d38b75a1c8971532da39ad27d9f6a4c06a258e0b09"
+    },
+    {
+      "so_id": "019f2cc6-68f4-75a6-9e65-4566808e49da",
+      "event_type": "STATE_TRANSITION",
+      "actor_id": "GEC",
+      "timestamp": "2026-07-04T10:57:08.341Z",
+      "kernel_id": "kernel-trans-1",
+      "payload": {
+        "from_state": "IN_JOURNEY",
+        "to_state": "COMPLETED",
+        "current_phase": "OPERATIONALLY_COMPLETE"
+      },
+      "entry_id": "019f2cc6-68f5-79b1-b060-14cf2d650265",
+      "prior_event_id": "019f2cc6-68f5-70fa-b2bf-6307108c94aa",
+      "gec_signature": "ecaac4a2cf6949c34e565271248b8e9c78abce2529d80f9ee9f50067086d2528f1992709432b30fa41469f12510696079ae1dc54d2dc0451203f458c8de24908"
+    }
+  ],
+  "gec_mediation_check": {
+    "t1_causal_chain_valid": true,
+    "t2_causal_chain_valid": true
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "soos-aep-sample",
+  "version": "0.1.0",
+  "description": "SOOS Step 12 — Agentic Execution Protocol (AEP) sample implementation, draft-sato-soos-aep-02. Integrates real Steps 1 (GAR), 2 (SOV), 3 (MJWT), 5 (IDP), 6 (KIA), 7 (HEM), 9 (CAP), 11 (MAD-adjacent) modules.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p .",
+    "demo": "tsc -p . && node dist/src/demo.js",
+    "corpus": "tsc -p . && node dist/src/gen-corpus.js"
+  },
+  "dependencies": {
+    "tweetnacl": "^1.0.3",
+    "jose": "^5.6.3",
+    "uuid": "^11.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "@types/node": "^20.14.0"
+  }
+}
