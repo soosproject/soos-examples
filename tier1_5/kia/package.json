@@ -1,0 +1,22 @@
+{
+  "name": "@soos-examples/kia",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TypeScript sample implementation of Kernel Identity and Attestation (KIA), draft-sato-soos-kia-05, Tier 1.5.",
+  "type": "module",
+  "main": "types.ts",
+  "scripts": {
+    "demo": "tsx demo.ts"
+  },
+  "dependencies": {
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2",
+    "@types/node": "^26.1.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

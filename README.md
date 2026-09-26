@@ -13,9 +13,9 @@ This is a scoped, early release of four modules from the SOOS (Sovereign Object 
 | GAR (Governance Audit Record) | `draft-sato-soos-gar-03` | 1 — standalone | Core complete. AAS/SCITT interoperability adapter **not** included — see below. |
 | MJWT (Mandate JWT) | `draft-sato-soos-mjwt-02` | 1 — standalone | Complete |
 | KIA (Kernel Identity & Attestation) | `draft-sato-soos-kia-03` | 1.5 — near-standalone | Complete. Built against an unmerged `-04` proposal text — see note below. |
-| CAP (Constitutional Action Policy) | `draft-sato-soos-cap-04` | 2 — interdependent | Complete |
+| CAP (Constitutional AI Protocol) | `draft-sato-soos-cap-04` | 2 — interdependent | Complete. Cedar policy engine hand-modeled, not integrated — see note below. |
 
-GAR is included because MJWT and CAP both write to it as their audit trail — it's a genuine runtime dependency for the demos in this repo to make sense, not an incidental extra.
+GAR is included because MJWT's design calls for it as an audit trail. As checked, none of the three other modules currently call into GAR's real log at runtime in this release — see "A note on integration" below for what that actually means.
 
 ---
 
@@ -33,9 +33,34 @@ The KIA module in this repository is built against an unmerged `-04` proposal, n
 
 ---
 
+## A note on integration — the four modules run correctly, but not together
+
+**None of the four modules currently call into each other's real implementation at runtime.** Checked directly, not assumed:
+
+- GAR and MJWT each sign with their own local, disposable stub keypair, not KIA's real signer (GAR's `KIAStubSigner`; MJWT's `index.ts`: *"STUB key management. Production: issuer key derived from KIA Governance Identity Keypair (KEE-1 P2/§10)"*).
+- CAP's `emitCapOtelSpan()` validates that all five required `soos.cap.*` attributes are present and returns them — it does not call GAR's log. CAP's own `demo.ts` never imports `GARLog` or anything from `gar-core`.
+
+Each module is correct and demoable in isolation, with real, adversarially-tested behavior. The composed system this repository's own architecture describes — CAP's decisions flowing into GAR's audit trail, signed by KIA's real key — isn't running as one system anywhere in this release. Wiring them together is a natural next step, not done here.
+
+**Separately, CAP's Cedar policy engine is hand-modeled, not real Cedar.** Rather than integrate the actual `@cedar-policy/cedar-wasm` package while the underlying wasm-vs-native-Rust decision (`OQ-SC-02`) remains genuinely unresolved, CAP's tier semantics ("forbid wins") are implemented directly as a typed merge function in `cedar-semantics.ts` — sufficient to demonstrate the conflict-resolution conformance requirements, but not Cedar itself. Stated in the module's own source as a deliberate, swappable placeholder, the same category of caveat as KIA's FROST simulation being explicitly not real threshold cryptography.
+
+---
+
 ## Known open items
 
-- **KIA** — `SDB-KIA-01` (§5.4 manifest currency check) is open and slated for a follow-up pass. `SDB-KIA-04-01/02/03` are pending against the unmerged `-04` proposal's own unresolved open questions, not bugs in this implementation of it.
+- **GAR** — four open items, each found by an adversarial test case, not just noted in passing:
+  - `SDB-GAR-02` — `verifyChain()` on a session with zero entries returns vacuous `{ valid: true }`; GAR-03 doesn't define this case, and a different implementer could reasonably throw instead.
+  - `SDB-GAR-03` — `append()` doesn't validate that `causal_parent_id` references an entry that actually exists in the log, nor that timestamps are non-decreasing within a session. Both are currently accepted silently.
+  - `SDB-GAR-04` — no `verifySessionBlock()` counterpart exists to catch a Session Block whose `merkle_root` doesn't actually match its claimed entries.
+  - `SDB-GAR-05` — `GOVERNANCE_SUSPENDED` has no enforced mandatory field set, unlike `CEDAR_PERMIT`/`CEDAR_DENY`. GAR-03 doesn't yet define what one should require.
+  - None of these are counterexamples that break the module — tamper detection, mandatory-provenance rejection, and out-of-order causal chains were all specifically tested and confirmed working correctly (`GAR-EDGE-004`, `006`, `007`). These four are places the spec itself is silent, surfaced by testing rather than guessed at.
+- **KIA** — built against `-03` (normative) plus three proposed `-04` GEC Manifest fields, integrated ahead of finalization. All three are unresolved open items from `-04`'s own proposal text, logged in the code, not bugs in this implementation of `-03`:
+  - `SDB-KIA-01` — §5.4 manifest currency check, open and separate from the `-04` items below; tracked as planned follow-up work (Step 6a), not yet reflected in this module's code.
+  - `SDB-KIA-04-01` — `kernel_implementer_id` format: built supporting *both* keypair-fingerprint and URI paths, per the proposal's dual-path design; not confirmed as final.
+  - `SDB-KIA-04-02` — no separate Security Considerations caveat added for `kernel_implementer_id`, matching the proposal's stated default; not confirmed.
+  - `SDB-KIA-04-03` — §15.12 numbering is a doc-only question, doesn't affect this code.
+  - Stated plainly in the module's own source: *"If -04 lands differently, this module's manifest fields are the blast radius."*
+- **CAP** — no logged spec-drift items as of this release; the most thoroughly adversarially-tested module in this set (7 happy-path + 11 edge/adversarial logs, including all ten CEE outputs and all five Tier 0-A prohibition classes). One build note, not a gap: the Cedar engine substitution described above (real `@cedar-policy/cedar-wasm` deferred pending `OQ-SC-02`).
 - Every module's full build record — including every point where spec text and implementation were found to diverge, and how each was resolved — is in that module's own `issue-log.md`. Nothing in that log is hidden or summarized away here; this README states the headline items, the issue logs state everything.
 
 ---
