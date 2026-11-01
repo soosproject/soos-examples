@@ -1,5 +1,5 @@
 // Step 1a — SVL Phase A: 20 happy-path GAR logs
-// Rebuilt against corrected gar-core.ts (own_span_hash fix, full GARProcessor emit)
+// Current against gar-core.ts (SDB-GAR-01/-03/-04/-06/-08/-09/-10 fixes applied)
 // Output: svl/corpus-b/gar/hp/GAR-HP-XXX.json
 
 import { writeFileSync, mkdirSync } from 'fs';

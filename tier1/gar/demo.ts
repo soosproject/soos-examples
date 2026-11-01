@@ -1,8 +1,16 @@
-// Step 1d — demo.ts
+// Step 1d — demo.ts  (updated for draft-sato-soos-gar-13, 1 Nov 2026)
 // Readable end-to-end walkthrough of GAR (Governance Audit Record):
-// session open -> Cedar DENY -> HEM escalation -> session close ->
+// mandate-binding check (CONF-GAR-SEQ-02) -> Session-Open Record
+// (CONF-GAR-SEQ-01) -> session start -> Cedar DENY -> HEM escalation -> session close ->
 // Session Block (Merkle root + KIA signature) -> chain verification ->
 // tamper -> chain verification fails at the tampered entry.
+//
+// Current against gar-core.ts (SDB-GAR-01/-03/-04/-06/-08/-09/-10 fixes
+// applied) -- every causal_parent_id below references a real prior
+// entry_id, so this walkthrough's happy path is unaffected by the
+// SDB-GAR-03 referential-integrity check. See generate-edge-logs.ts
+// GAR-EDGE-003/GAR-EDGE-011 for what a rejected append / signer failure
+// actually looks like.
 //
 // Event shape and field values are drawn from GAR-HP-006
 // (svl/corpus-b/gar/hp/GAR-HP-006.json — the CEDAR_DENY mid-session
@@ -15,7 +23,10 @@ import {
   GARLog,
   GARProcessor,
   KIAStubSigner,
+  InMemorySov,
+  GarSessionOpenRejectedError,
   closeSessionBlock,
+  verifySessionBlock,
   ALEType,
 } from './gar-core';
 
@@ -40,25 +51,62 @@ async function main() {
   const kernel_id = 'kernel-demo';
   const cap_profile_hash = 'caphash-demo';
 
+  const sov = new InMemorySov();
+  const mandate_id = 'mjwt-demo-1';
+  const mandateBound = sov.bindMandate(mandate_id);
+
   // -------------------------------------------------------------
-  // 1. Session opens
+  // 0. CONF-GAR-SEQ-02 negative path: unbound mandate -> no session
   // -------------------------------------------------------------
-  section('1. SESSION_START');
+  section('0. Session open under an UNBOUND mandate -- rejected (CONF-GAR-SEQ-02)');
+  try {
+    log.openSession({
+      session_id: 'demo-rejected-' + randomUUID().slice(0, 8),
+      actor_id: 'agent-2',
+      mandate_id: 'mjwt-never-issued',
+      timestamp: new Date().toISOString(),
+      kernel_id,
+      sov,
+    });
+    console.log('  ✗ unexpected: session opened without a MANDATE_BOUND entry');
+  } catch (err) {
+    if (!(err instanceof GarSessionOpenRejectedError)) throw err;
+    console.log(`  ✓ rejected; ${err.anomaly.ale_type} recorded (anomaly_reason=${err.anomaly.anomaly_reason})`);
+  }
+
+  // -------------------------------------------------------------
+  // 1. Session-Open Record (Type 6) + SESSION_START
+  // -------------------------------------------------------------
+  section('1. SESSION_OPEN_RECORD (Type 6) -> SESSION_START');
+  const sor = log.openSession({
+    session_id,
+    actor_id: 'agent-2',
+    mandate_id,
+    timestamp: new Date().toISOString(),
+    kernel_id,
+    sov,
+  });
+  processor.emit(sor);
+  const msb = sov.events.find((e) => e.event_id === sor.sov_binding_event_id)!;
+  console.log(`  session_sequence_number: ${sor.session_sequence_number}`);
+  console.log(`  sov_binding_event_id:    ${sor.sov_binding_event_id} (SOV ${msb.event_type})`);
+  console.log(`  MANDATE_SESSION_BOUND.prior_event_id -> MANDATE_BOUND: ${msb.prior_event_id === mandateBound}`);
+  console.log(`  prev_span_hash:          ${short(sor.prev_span_hash)}... (first-span sentinel)`);
+
   const start = log.append({
     entry_id: randomUUID(),
     ale_type: ALEType.SESSION_START,
     session_id,
     actor_id: 'agent-2',
     timestamp: new Date().toISOString(),
-    causal_parent_id: null,
+    causal_parent_id: sor.entry_id,
     decision: 'PERMIT',
     kernel_id,
     cap_profile_hash,
   });
   processor.emit(start);
-  console.log(`  entry_id:        ${start.entry_id}`);
-  console.log(`  prev_span_hash:  ${short(start.prev_span_hash)}... (GENESIS sentinel)`);
-  console.log(`  own_span_hash:   ${short(start.own_span_hash)}...`);
+  console.log(`  SESSION_START entry_id:  ${start.entry_id}`);
+  console.log(`  own_span_hash:           ${short(start.own_span_hash)}...`);
 
   // -------------------------------------------------------------
   // 2. Cedar DENY logged
@@ -75,6 +123,7 @@ async function main() {
     kernel_id,
     cap_profile_hash,
     cedar_policy_id: 'policy-deny-demo-b',
+    cedar_action: 'Action::"transfer_funds"',
     cap_rrs_control_id: 'ctrl-deny-demo-b',
     authority_source_uri: 'https://law.example/deny-demo-b',
     tier: 'Tier0',
@@ -83,6 +132,7 @@ async function main() {
   processor.emit(deny);
   console.log(`  entry_id:            ${deny.entry_id}`);
   console.log(`  cedar_policy_id:     ${deny.cedar_policy_id}`);
+  console.log(`  cedar_action:        ${deny.cedar_action}`);
   console.log(`  authority_source_uri: ${deny.authority_source_uri}`);
   console.log(`  causal_parent_id:    ${deny.causal_parent_id} (-> SESSION_START)`);
   console.log(`  prev_span_hash:      ${short(deny.prev_span_hash)}...`);
@@ -135,9 +185,9 @@ async function main() {
   console.log(`  own_span_hash:     ${short(end.own_span_hash)}...`);
 
   // -------------------------------------------------------------
-  // 5. Session Block: Merkle root over all 4 entries + KIA signature
+  // 5. Session Block: Merkle root over all 5 entries + KIA signature
   // -------------------------------------------------------------
-  section('5. Session Block — Merkle root over 4 entries + KIA stub signature');
+  section('5. Session Block — RFC 9162 Merkle root over 5 entries + KIA stub signature');
   const entries = log.getSession(session_id);
   // KIA stub signer — replace with real KIA Governance Identity Keypair when Step 6 completes
   const signer = new KIAStubSigner();
@@ -148,6 +198,8 @@ async function main() {
   console.log(`  signature.alg:     ${block.block_signature.algorithm}`);
   console.log(`  signature.key_id:  ${block.block_signature.key_id}`);
   console.log(`  signature:         ${short(block.block_signature.signature)}...`);
+  const blockCheck = verifySessionBlock(block);
+  console.log(`  verifySessionBlock: ${blockCheck.valid ? 'PASS' : 'FAIL'}`);
 
   // -------------------------------------------------------------
   // 6. Chain verification — before tampering
@@ -157,11 +209,11 @@ async function main() {
   console.log(`  ${before.valid ? 'PASS' : 'FAIL'}${before.valid ? '' : ` at entry ${before.failedAt}`}`);
 
   // -------------------------------------------------------------
-  // 7. Tamper: byte modified in entry 2 (the CEDAR_DENY entry, index 1)
+  // 7. Tamper: byte modified in entry 3 (the CEDAR_DENY entry, index 2)
   // -------------------------------------------------------------
-  section('7. [Tamper: byte modified in entry 2 — CEDAR_DENY.decision]');
-  (entries[1] as any).decision = 'TAMPERED';
-  console.log('  entries[1].decision overwritten in place (simulating storage-layer corruption)');
+  section('7. [Tamper: byte modified in entry 3 — CEDAR_DENY.decision]');
+  (entries[2] as any).decision = 'TAMPERED';
+  console.log('  entries[2].decision overwritten in place (simulating storage-layer corruption)');
 
   // -------------------------------------------------------------
   // 8. Chain verification — after tampering
@@ -171,8 +223,8 @@ async function main() {
   console.log(`  ${after.valid ? 'PASS' : 'FAIL'}${after.valid ? '' : ` at entry ${after.failedAt}`}`);
   console.log();
   console.log(
-    after.valid === false && after.failedAt === 1
-      ? '  ✓ Correctly localized to entry index 1 (the tampered CEDAR_DENY entry).'
+    after.valid === false && after.failedAt === 2
+      ? '  ✓ Correctly localized to entry index 2 (the tampered CEDAR_DENY entry).'
       : '  ✗ Unexpected result — see gar-core.ts verifyChain() / Step 1b notes.'
   );
 

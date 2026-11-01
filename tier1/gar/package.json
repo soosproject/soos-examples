@@ -1,0 +1,11 @@
+{
+  "name": "soos-gar-examples",
+  "private": true,
+  "description": "GAR sample code aligned to draft-sato-soos-gar-13",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "demo": "tsx demo.ts",
+    "demo:revocation": "tsx demo-revocation.ts"
+  },
+  "devDependencies": { "@types/node": "^22.0.0", "typescript": "5.6.3", "tsx": "^4.19.0" }
+}
