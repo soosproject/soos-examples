@@ -14,6 +14,8 @@ import {
   GarBlockSigner,
   ALEType,
   GAREntry,
+  GarBlockHeadMismatchError,
+  computePrevSpanHash,
 } from './gar-core';
 
 const OUT_DIR = 'svl/corpus-b/gar/edge';
@@ -55,7 +57,7 @@ console.log('GAR-EDGE-001 — empty log verifyChain()...');
 // =====================================================================
 // GAR-EDGE-002 — Single entry, no predecessor
 // =====================================================================
-console.log('GAR-EDGE-002 — single entry, GENESIS sentinel...');
+console.log('GAR-EDGE-002 — single entry, empty-string first-span input...');
 {
   const log = new GARLog();
   const session_id = `edge-002-${randomUUID().slice(0, 8)}`;
@@ -67,13 +69,13 @@ console.log('GAR-EDGE-002 — single entry, GENESIS sentinel...');
 
   writeEdge('GAR-EDGE-002', {
     scenario: 'Single entry — no predecessor. What does prev_span_hash contain?',
-    expected_per_plan: 'Resolved by SDB-GAR-01 — GENESIS sentinel',
+    expected_per_plan: 'GAR-14 Section 2 — first-span input is the empty string',
     actual: { prev_span_hash: entry.prev_span_hash, verify: log.verifyChain(session_id) },
     classification: 'Resolved — not a new finding',
     note:
-      'Confirms SDB-GAR-01 resolution (svl/issue-log.md ISSUE-001) is correctly implemented: ' +
-      "first entry in a session carries prev_span_hash === 'GENESIS', and verifyChain() " +
-      "treats 'GENESIS' as the expected initial value. No new issue.",
+      "First entry in a session carries prev_span_hash === '' (GAR-14 Section 2, decided " +
+      "4 Nov 2026; earlier samples used 'GENESIS' -- SDB-GAR-14, closed), and verifyChain() " +
+      'treats the empty string as the expected initial value.',
   });
 }
 
@@ -310,13 +312,23 @@ console.log('GAR-EDGE-008 — Session Block missing entry from Merkle set...');
   const partialEntries = [fullEntries[0], fullEntries[1], fullEntries[3]]; // drop index 2
 
   const signer = new KIAStubSigner();
-  const fullBlock = closeSessionBlock(session_id, fullEntries, signer);
-  const partialBlock = closeSessionBlock(session_id, partialEntries, signer);
+  const fullBlock = closeSessionBlock(session_id, fullEntries, signer, log.sessionHead(session_id));
 
-  // SDB-GAR-04 is resolved: verifySessionBlock() now exists. Demonstrate a receiving
-  // party using it to catch a Session Block whose claimed merkle_root doesn't match
-  // an independently-held copy of the entries -- e.g. partialBlock's events arrived,
-  // but the receiver recomputes against the ORIGINAL fullEntries it already had.
+  // GAR-14 CONF-GAR-BLOCK-03: the GEC now refuses to sign the partial set at all.
+  let partialRefused = false;
+  try {
+    closeSessionBlock(session_id, partialEntries, signer, log.sessionHead(session_id));
+  } catch (err) {
+    if (!(err instanceof GarBlockHeadMismatchError)) throw err;
+    partialRefused = true;
+  }
+  // A receiving party can still detect a mismatched block with verifySessionBlock():
+  // build the root a non-conforming signer would have produced over partialEntries
+  // (expected head taken from the partial set itself) and check it against fullEntries.
+  const partialBlock = closeSessionBlock(session_id, partialEntries, signer, {
+    head: partialEntries[partialEntries.length - 1].own_span_hash,
+    count: partialEntries.length,
+  });
   const tamperCheck = verifySessionBlock({ ...partialBlock, events: fullEntries });
 
   writeEdge('GAR-EDGE-008', {
@@ -326,6 +338,7 @@ console.log('GAR-EDGE-008 — Session Block missing entry from Merkle set...');
       full_merkle_root: fullBlock.merkle_root,
       partial_merkle_root: partialBlock.merkle_root,
       roots_differ: fullBlock.merkle_root !== partialBlock.merkle_root,
+      gec_refused_partial_block: partialRefused,
       verify_partial_block_against_full_entries: tamperCheck,
       verify_full_block_self_consistent: verifySessionBlock(fullBlock),
     },
@@ -459,7 +472,7 @@ console.log('GAR-EDGE-011 — signer failure at Session Block close (SDB-GAR-10)
   let isGarSignerFailureError = false;
   let causeMessage = '';
   try {
-    closeSessionBlock(session_id, entries, quorumFailureSigner);
+    closeSessionBlock(session_id, entries, quorumFailureSigner, log.sessionHead(session_id));
   } catch (err) {
     threw = true;
     if (err instanceof GarSignerFailureError) {
@@ -471,7 +484,7 @@ console.log('GAR-EDGE-011 — signer failure at Session Block close (SDB-GAR-10)
   // Confirm a working signer still closes the block normally -- the fix changes
   // failure handling only, not the happy path.
   const goodSigner = new KIAStubSigner();
-  const block = closeSessionBlock(session_id, entries, goodSigner);
+  const block = closeSessionBlock(session_id, entries, goodSigner, log.sessionHead(session_id));
 
   writeEdge('GAR-EDGE-011', {
     scenario: 'closeSessionBlock() called with a signer that throws on sign() (simulated FROST quorum failure)',
@@ -502,3 +515,64 @@ console.log('GAR-EDGE-011 — signer failure at Session Block close (SDB-GAR-10)
 }
 
 console.log('Done. GAR-EDGE-011 written to', OUT_DIR);
+
+// =====================================================================
+// GAR-EDGE-012 — pipeline drop-and-recompute (GAR-14 CONF-GAR-BLOCK-03)
+// =====================================================================
+console.log('GAR-EDGE-012 — span dropped in transit, later chain values recomputed...');
+{
+  const log = new GARLog();
+  const session_id = `edge-012-${randomUUID().slice(0, 8)}`;
+  let parent: string | null = null;
+  for (let i = 0; i < 5; i++) {
+    const deny = i === 2;
+    const e = log.append({
+      entry_id: randomUUID(), ale_type: deny ? ALEType.CEDAR_DENY : ALEType.CEDAR_PERMIT, session_id,
+      actor_id: 'agent-1', timestamp: now(i), causal_parent_id: parent,
+      decision: deny ? 'DENY' : 'PERMIT', kernel_id: 'k1', cap_profile_hash: 'abc',
+      cedar_policy_id: `p${i}`, cap_rrs_control_id: `c${i}`, authority_source_uri: `u${i}`,
+    });
+    parent = e.entry_id;
+  }
+  const emitted = log.getSession(session_id);
+
+  // Attacker between kernel and GAR Processor: drop the DENY, recompute the chain.
+  const forged = emitted.filter((_, i) => i !== 2).map((e) => ({ ...e }));
+  let prev = '';
+  for (const e of forged) {
+    e.prev_span_hash = prev;
+    e.own_span_hash = computePrevSpanHash({
+      session_id: e.session_id, decision: e.decision, kernel_id: e.kernel_id,
+      cap_profile_hash: e.cap_profile_hash, timestamp: e.timestamp, prev_span_hash: prev,
+    });
+    prev = e.own_span_hash;
+  }
+  // The forged chain is internally consistent: every link matches.
+  const forgedContiguous = forged.every((e, i) => i === 0 || e.prev_span_hash === forged[i - 1].own_span_hash);
+
+  const signer = new KIAStubSigner();
+  let refused = false;
+  let detail: unknown = null;
+  try {
+    closeSessionBlock(session_id, forged, signer, log.sessionHead(session_id));
+  } catch (err) {
+    if (!(err instanceof GarBlockHeadMismatchError)) throw err;
+    refused = true;
+    detail = { expected: err.expected, offered: err.offered };
+  }
+
+  writeEdge('GAR-EDGE-012', {
+    scenario: 'One DENY span dropped between kernel and GAR Processor; every later prev_span_hash recomputed',
+    expected_per_plan: 'GAR-14 CONF-GAR-BLOCK-03: GEC refuses to sign; caller emits KERNEL_AUDIT_ANOMALY',
+    actual: { forged_chain_contiguous: forgedContiguous, gec_refused_to_sign: refused, detail },
+    classification: 'GAR-14 pre-signing check confirmed',
+    note:
+      'Reproduces Dash Wider-AUDIT F1 (v1.4 A16). Without the check, the forged chain is ' +
+      'contiguous and a Session Block over it is signed and passes verifySessionBlock(). The ' +
+      "GEC's own head and span count reject it. The check does not catch an in-transit edit to " +
+      'a field outside the six chain inputs; GAR-14 requires the GEC to compute the root itself ' +
+      'wherever spans leave its process (Level 2+).',
+  });
+}
+
+console.log('Done. GAR-EDGE-012 written to', OUT_DIR);

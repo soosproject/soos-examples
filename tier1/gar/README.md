@@ -1,9 +1,23 @@
 # GAR — Governance Audit Record
 
-Sample TypeScript implementation of `draft-sato-soos-gar-13` —
+Sample TypeScript implementation of `draft-sato-soos-gar-14` —
 Session Audit Record path (`gar-core.ts`) and Authority Lifecycle Events
 (`authority-lifecycle.ts`) — Tier 1, standalone, no external SOOS
 dependencies. Pairs with `draft-sato-soos-sov-05` (MANDATE_SESSION_BOUND).
+
+## GAR-14 update (4 November 2026)
+
+- `closeSessionBlock()` takes a fourth argument, the GEC's own
+  `log.sessionHead(session_id)`, and throws `GarBlockHeadMismatchError`
+  without signing if the offered entries don't end at that head or don't
+  number what the GEC emitted (GAR-14 §14.2 Stage 4, CONF-GAR-BLOCK-03).
+  This stops a span dropped in transit with every later chain value
+  recomputed. See `demo.ts` section 5b and `GAR-EDGE-012`.
+- The block signature is over the 32 raw Merkle root octets, not the hex
+  text (GAR-14 §14.3). `GarBlockSigner.sign()` now takes a `Buffer`.
+- The first-span input is the empty string (GAR-14 §2), no longer
+  `'GENESIS'`. **svl/corpus-b must be regenerated**, and any shared test
+  vectors built from the old corpus re-issued.
 
 ## GAR-13 alignment (1 November 2026)
 
@@ -226,7 +240,7 @@ since only the caller knows its deployment's quorum-restoration policy:
 
 ```typescript
 try {
-  const block = closeSessionBlock(session_id, entries, signer);
+  const block = closeSessionBlock(session_id, entries, signer, log.sessionHead(session_id));
 } catch (err) {
   if (err instanceof GarSignerFailureError) {
     log.append({ ale_type: ALEType.KERNEL_AUDIT_ANOMALY, /* ... */ });
@@ -245,8 +259,9 @@ The sample code is intentionally faithful to what GAR-06 currently
 specifies, and no further. Several edge cases surfaced open questions —
 logged rather than silently guessed at:
 
-- **SDB-GAR-01** (resolved) — `prev_span_hash` for the first entry in a
-  session is the sentinel string `'GENESIS'`.
+- **SDB-GAR-01** (resolved; value changed in GAR-14) — `prev_span_hash`
+  input for the first entry in a session is the empty string (it was the
+  sentinel `'GENESIS'` until 4 Nov 2026; see SDB-GAR-14).
 - **SDB-GAR-02** (open) — `verifyChain()` on a session with zero entries
   returns vacuous `{ valid: true }`; GAR-06 doesn't define this case.
   Non-blocking, genuinely ambiguous.
@@ -286,12 +301,10 @@ logged rather than silently guessed at:
   spec; it's ARP-03's 32-zero-octet assumption that's out of step with
   GAR here, not the other way around.
 
-- **SDB-GAR-13** (open, new) — first-span sentinel. GAR-13 §2 says the
-  empty string for the first span in a session; this code and the
-  corpus use `'GENESIS'`. Isolated as `FIRST_PREV_SPAN_HASH` in
-  `gar-core.ts`; switching needs a corpus regeneration and re-confirming
-  any shared test vectors, so it is left for a decision.
-- **SDB-GAR-14** (open, new) — the Session-Open Record is not signed
+- **SDB-GAR-14** (resolved 4 Nov 2026) — first-span value. GAR §2 says
+  the empty string; the code used `'GENESIS'`. Decided: empty string
+  (`FIRST_PREV_SPAN_HASH = ''`); corpus regeneration required.
+- **SDB-GAR-15** (open) — the Session-Open Record is not signed
   individually here (GAR-13 §4.6 lists `gec_signature`); it is covered by
   the Session Block signature at close. `sequence_record_id` uses
   `randomUUID()` (v4) in place of UUID v7. `cedar_action` is emitted but

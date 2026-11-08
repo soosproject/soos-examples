@@ -267,7 +267,7 @@ for (let n = 1; n <= 2; n++) {
 
   const entries = log.getSession(session_id);
   const signer = new KIAStubSigner();
-  const block = closeSessionBlock(session_id, entries, signer);
+  const block = closeSessionBlock(session_id, entries, signer, log.sessionHead(session_id));
 
   writeLog(`GAR-HP-${String(18 + n).padStart(3, '0')}`, {
     session_id,
