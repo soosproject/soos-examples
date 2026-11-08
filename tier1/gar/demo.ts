@@ -1,4 +1,4 @@
-// Step 1d — demo.ts  (updated for draft-sato-soos-gar-13, 1 Nov 2026)
+// Step 1d — demo.ts  (updated for draft-sato-soos-gar-14, 4 Nov 2026)
 // Readable end-to-end walkthrough of GAR (Governance Audit Record):
 // mandate-binding check (CONF-GAR-SEQ-02) -> Session-Open Record
 // (CONF-GAR-SEQ-01) -> session start -> Cedar DENY -> HEM escalation -> session close ->
@@ -27,6 +27,8 @@ import {
   GarSessionOpenRejectedError,
   closeSessionBlock,
   verifySessionBlock,
+  computePrevSpanHash,
+  GarBlockHeadMismatchError,
   ALEType,
 } from './gar-core';
 
@@ -191,7 +193,7 @@ async function main() {
   const entries = log.getSession(session_id);
   // KIA stub signer — replace with real KIA Governance Identity Keypair when Step 6 completes
   const signer = new KIAStubSigner();
-  const block = closeSessionBlock(session_id, entries, signer);
+  const block = closeSessionBlock(session_id, entries, signer, log.sessionHead(session_id));
   console.log(`  block_id:          ${block.block_id}  (stand-in for OTel trace_id)`);
   console.log(`  entries in block:  ${block.events.length}`);
   console.log(`  merkle_root:       ${short(block.merkle_root)}...`);
@@ -200,6 +202,29 @@ async function main() {
   console.log(`  signature:         ${short(block.block_signature.signature)}...`);
   const blockCheck = verifySessionBlock(block);
   console.log(`  verifySessionBlock: ${blockCheck.valid ? 'PASS' : 'FAIL'}`);
+
+  // -------------------------------------------------------------
+  // 5b. Pipeline tamper: drop the DENY in transit, recompute the chain
+  // -------------------------------------------------------------
+  section('5b. Pipeline tamper — DENY dropped, chain recomputed (GAR-14 CONF-GAR-BLOCK-03)');
+  const forged = entries.filter((e) => e.ale_type !== ALEType.CEDAR_DENY).map((e) => ({ ...e }));
+  let p = '';
+  for (const e of forged) {
+    e.prev_span_hash = p;
+    e.own_span_hash = computePrevSpanHash({
+      session_id: e.session_id, decision: e.decision, kernel_id: e.kernel_id,
+      cap_profile_hash: e.cap_profile_hash, timestamp: e.timestamp, prev_span_hash: p,
+    });
+    p = e.own_span_hash;
+  }
+  console.log(`  forged block: ${forged.length} spans, chain internally consistent`);
+  try {
+    closeSessionBlock(session_id, forged, signer, log.sessionHead(session_id));
+    console.log('  ✗ unexpected: GEC signed the forged block');
+  } catch (err) {
+    if (!(err instanceof GarBlockHeadMismatchError)) throw err;
+    console.log(`  ✓ GEC refused to sign: emitted ${err.expected.count}, offered ${err.offered.count}`);
+  }
 
   // -------------------------------------------------------------
   // 6. Chain verification — before tampering

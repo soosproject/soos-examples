@@ -1,5 +1,11 @@
 // GAR (Governance Audit Record) — core implementation
-// draft-sato-soos-gar-13 (Session Audit Record path)
+// draft-sato-soos-gar-14 (Session Audit Record path)
+//
+// GAR-14 UPDATE (4 Nov 2026): first-span input is the empty string
+// (GAR-14 Section 2); the block signature is over the 32 raw root octets
+// (Section 14.3); closeSessionBlock() refuses to sign unless the block
+// matches the session head and span count the GEC itself computed
+// (Section 14.2 Stage 4, CONF-GAR-BLOCK-03).
 //
 // MERGE NOTE (1 Nov 2026, D21): two copies of this file were in circulation.
 // The GAR-06-repaired copy (canonicalization, RFC 6962 Merkle, signer
@@ -93,6 +99,7 @@ export interface GAREntry {
   session_sequence_number?: number; // monotonic per GEC instance, never reused
   opened_at?: string;              // ISO 8601
   sov_binding_event_id?: string;   // event_id of the SOV MANDATE_SESSION_BOUND entry
+  ac_hash?: string;                // SHA-256 of the session's Accountability Context object (GAR-14 §4.6)
   mandate_id?: string;             // jti of the Mandate JWT this session opens under
 
   // KERNEL_AUDIT_ANOMALY fields (sample-level; GAR-13 Section 4.1)
@@ -122,13 +129,11 @@ export interface GAREntry {
   block_id?: string;                 // = OTel trace_id, set at session close
 }
 
-// First-span sentinel. OPEN ITEM: GAR-13 Section 2 says the empty string
-// for the first span in a session; this sample (and the svl/corpus-b logs
-// generated from it) uses 'GENESIS'. Kept as 'GENESIS' so existing corpus
-// hashes and shared test vectors don't shift silently -- switching to ''
-// is a one-line change here plus a corpus regeneration, and should be
-// decided together with the test-vector owners.
-export const FIRST_PREV_SPAN_HASH = 'GENESIS';
+// First-span input (GAR-14 Section 2, decided 4 Nov 2026): the empty
+// string -- not null, not a sentinel. Earlier samples used 'GENESIS';
+// svl/corpus-b and any shared test vectors built from them must be
+// regenerated (SDB-GAR-14, closed).
+export const FIRST_PREV_SPAN_HASH = '';
 
 const MANDATORY_PROVENANCE: (keyof GAREntry)[] = [
   'cedar_policy_id',
@@ -220,8 +225,8 @@ export class KIAStubSigner implements GarBlockSigner {
       .slice(0, 16);
   }
 
-  sign(data: string): string {
-    return edSign(null, Buffer.from(data), this.privateKey).toString('hex');
+  sign(rootBytes: Buffer): string {
+    return edSign(null, rootBytes, this.privateKey).toString('hex');
   }
 }
 
@@ -291,6 +296,20 @@ export class GarSessionOpenRejectedError extends Error {
 export class GARLog {
   private entries: GAREntry[] = [];
   private lastHashBySession: Map<string, string> = new Map();
+  private countBySession: Map<string, number> = new Map();
+
+  /**
+   * The GEC's own view of a session (GAR-14 CONF-GAR-BLOCK-03): the chain
+   * value it computed for the last span it emitted, and how many spans it
+   * emitted. Pass this to closeSessionBlock(); never derive it from the
+   * spans the GAR Processor hands back.
+   */
+  sessionHead(session_id: string): SessionHead {
+    return {
+      head: this.lastHashBySession.get(session_id) ?? FIRST_PREV_SPAN_HASH,
+      count: this.countBySession.get(session_id) ?? 0,
+    };
+  }
   private nextSequenceNumber = 0; // CONF-GAR-SEQ-01 -- monotonic per GEC instance, never reused
 
   /**
@@ -316,6 +335,7 @@ export class GARLog {
     timestamp: string;
     kernel_id?: string;
     sov: SovMandateBinding;
+    ac_hash?: string; // GAR-14 §4.6; the caller stores the AC object and passes its hash
   }): GAREntry {
     const mandateBoundEventId = params.sov.resolveMandateBound(params.mandate_id);
     if (mandateBoundEventId === null) {
@@ -357,6 +377,7 @@ export class GARLog {
       session_sequence_number,
       opened_at: params.timestamp,
       sov_binding_event_id,
+      ac_hash: params.ac_hash,
       mandate_id: params.mandate_id,
     });
   }
@@ -421,6 +442,7 @@ export class GARLog {
     const full: GAREntry = { ...entry, prev_span_hash: prev, own_span_hash: ownHash };
 
     this.lastHashBySession.set(entry.session_id, ownHash);
+    this.countBySession.set(entry.session_id, (this.countBySession.get(entry.session_id) ?? 0) + 1);
     this.entries.push(full);
     return full;
   }
@@ -569,8 +591,34 @@ function merkleRoot(leaves: Buffer[]): Buffer {
 // kia-signer.ts. closeSessionBlock() only needs sign()/publicKeyId; it does
 // not need to know how the signer got its key material.
 export interface GarBlockSigner {
-  sign(merkleRootHex: string): string;
+  /** Sign the 32 raw Merkle root octets (GAR-14 Section 14.3), not their hex text. */
+  sign(rootBytes: Buffer): string;
   readonly publicKeyId: string;
+}
+
+export interface SessionHead {
+  head: string;  // chain value of the last span the GEC emitted ('' if none)
+  count: number; // number of spans the GEC emitted in the session
+}
+
+// ---------------------------------------------------------------------
+// GarBlockHeadMismatchError -- GAR-14 CONF-GAR-BLOCK-03. Thrown when the
+// entries offered for a Session Block do not end at the GEC's own head or
+// do not number what the GEC emitted: a span was dropped, added or
+// reordered between the kernel and the GAR Processor, even if every later
+// chain value was recomputed. Nothing is signed. The caller MUST append a
+// KERNEL_AUDIT_ANOMALY entry and MUST NOT treat the session as closed with
+// this block.
+// ---------------------------------------------------------------------
+export class GarBlockHeadMismatchError extends Error {
+  constructor(
+    message: string,
+    public readonly expected: SessionHead,
+    public readonly offered: SessionHead
+  ) {
+    super(message);
+    this.name = 'GarBlockHeadMismatchError';
+  }
 }
 
 // ---------------------------------------------------------------------
@@ -589,7 +637,7 @@ export interface GarBlockSigner {
 // restored. Sample usage:
 //
 //   try {
-//     const block = closeSessionBlock(session_id, entries, signer);
+//     const block = closeSessionBlock(session_id, entries, signer, log.sessionHead(session_id));
 //   } catch (err) {
 //     if (err instanceof GarSignerFailureError) {
 //       log.append({ ale_type: ALEType.KERNEL_AUDIT_ANOMALY, ... });
@@ -616,8 +664,28 @@ export class GarSignerFailureError extends Error {
 export function closeSessionBlock(
   session_id: string,
   entries: GAREntry[],
-  signer: GarBlockSigner
+  signer: GarBlockSigner,
+  expected: SessionHead
 ): SessionBlock {
+  // GAR-14 CONF-GAR-BLOCK-03: check before anything is signed. Catches
+  // missing, added and reordered spans. It does not catch an in-transit
+  // edit to a field outside the six chain inputs; GAR-14 requires the GEC
+  // to compute the root itself where spans leave its process (Level 2+).
+  const offered: SessionHead = {
+    head: entries.length ? entries[entries.length - 1].own_span_hash : FIRST_PREV_SPAN_HASH,
+    count: entries.length,
+  };
+  if (offered.count !== expected.count || offered.head !== expected.head) {
+    throw new GarBlockHeadMismatchError(
+      `GAR Session Block refused for session '${session_id}': block has ${offered.count} ` +
+        `span(s) ending at '${offered.head.slice(0, 16)}', GEC emitted ${expected.count} ending at ` +
+        `'${expected.head.slice(0, 16)}' (GAR-14 CONF-GAR-BLOCK-03). Not signed; caller MUST ` +
+        `emit KERNEL_AUDIT_ANOMALY.`,
+      expected,
+      offered
+    );
+  }
+
   const block_id = randomBytes(16).toString('hex'); // stand-in for OTel trace_id
   // SDB-GAR-08 fix: attach block_id BEFORE hashing, not after. Previously
   // the Merkle root was computed over `entries` (no block_id) while the
@@ -632,7 +700,7 @@ export function closeSessionBlock(
 
   let signature: string;
   try {
-    signature = signer.sign(rootHex);
+    signature = signer.sign(root); // raw 32 octets (GAR-14 Section 14.3)
   } catch (err) {
     // SDB-GAR-10 fix: previously this call had no try/catch, so a real
     // signer's failure (e.g. FROST quorum failure) propagated as
